@@ -35,7 +35,7 @@ public class Configs implements IConfigHandler {
         public static final ConfigInteger CACHE_MAX_MB = ConfigUtil.addConfigInteger("cache.max.mb", 512, 512, 8000);
         public static final ConfigInteger CACHE_DELETE_MB = ConfigUtil.addConfigInteger("cache.delete.mb", 126, 126, 8000);
         public static final ConfigBooleanHotkeyed MUSIC_INFO = ConfigUtil.addConfigBooleanHotkeyed("music.info");
-        public static final ConfigBooleanHotkeyed LYRIC = ConfigUtil.addConfigBooleanHotkeyed("lyric");
+        public static final ConfigOptionList LYRIC_STYLE = ConfigUtil.addConfigOptionList("lyric.style", LyricStyle.DEFAULT);
         public static final ConfigInteger PAGE_LIMIT = ConfigUtil.addConfigInteger("page.limit", 8, 5, 16);
         public static final ConfigInteger MUSIC_INFO_X = ConfigUtil.addConfigInteger("music.info.x", 0, 0, 4000);
         public static final ConfigInteger MUSIC_INFO_Y = ConfigUtil.addConfigInteger("music.info.y", 30, 0, 3000);
@@ -97,7 +97,7 @@ public class Configs implements IConfigHandler {
                 CACHE_DELETE_MB,
                 PAGE_LIMIT,
                 MUSIC_INFO,
-                LYRIC,
+                LYRIC_STYLE,
                 MUSIC_INFO_X,
                 MUSIC_INFO_Y,
                 MUSIC_INFO_EFFECT_OFFSET,
@@ -182,7 +182,7 @@ public class Configs implements IConfigHandler {
 
     public static class GUI {
         public static final ConfigBooleanHotkeyed MUSIC_INFO = ALL.MUSIC_INFO;
-        public static final ConfigBooleanHotkeyed LYRIC = ALL.LYRIC;
+        public static final ConfigOptionList LYRIC_STYLE = ALL.LYRIC_STYLE;
         public static final ConfigBoolean STOP_PLAY_SHOW_UI = ALL.STOP_PLAY_SHOW_UI;
         public static final ConfigInteger PAGE_LIMIT = ALL.PAGE_LIMIT;
         public static final ConfigInteger MUSIC_INFO_X = ALL.MUSIC_INFO_X;
@@ -203,7 +203,7 @@ public class Configs implements IConfigHandler {
 
         public static final ImmutableList<IConfigBase> OPTIONS = ImmutableList.of(
                 MUSIC_INFO,
-                LYRIC,
+                LYRIC_STYLE,
                 STOP_PLAY_SHOW_UI,
                 PAGE_LIMIT,
                 MUSIC_INFO_X,
@@ -264,7 +264,6 @@ public class Configs implements IConfigHandler {
 
     public static class ENABLE {
         public static final ConfigBooleanHotkeyed MUSIC_INFO = ALL.MUSIC_INFO;
-        public static final ConfigBooleanHotkeyed LYRIC = ALL.LYRIC;
         public static final ConfigBooleanHotkeyed PLAY_LOOP = ALL.PLAY_LOOP;
         public static final ConfigBooleanHotkeyed PLAY_AUTO_RANDOM = ALL.PLAY_AUTO_RANDOM;
         public static final ConfigBooleanHotkeyed MUSIC_INFO_EFFECT_OFFSET = ALL.MUSIC_INFO_EFFECT_OFFSET;
@@ -273,7 +272,6 @@ public class Configs implements IConfigHandler {
 
         public static final ImmutableList<ConfigBooleanHotkeyed> HOTKEY_LIST = ImmutableList.of(
                 MUSIC_INFO,
-                LYRIC,
                 PLAY_LOOP,
                 PLAY_AUTO_RANDOM,
                 MUSIC_INFO_EFFECT_OFFSET,

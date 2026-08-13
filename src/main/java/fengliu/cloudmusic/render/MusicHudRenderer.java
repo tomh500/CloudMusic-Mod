@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.mojang.blaze3d.platform.cursor.CursorTypes;
 import fengliu.cloudmusic.command.MusicCommand;
 import fengliu.cloudmusic.config.Configs;
+import fengliu.cloudmusic.config.LyricStyle;
 import fengliu.cloudmusic.music163.IMusic;
 import fengliu.cloudmusic.music163.data.DjMusic;
 import fengliu.cloudmusic.music163.data.Music;
@@ -14,7 +15,9 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.ChatScreen;
+import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffectInstance;
 import org.joml.Matrix3x2fStack;
@@ -30,7 +33,7 @@ public class MusicHudRenderer implements HudElement {
     private final Minecraft client = Minecraft.getInstance();
 
     private enum DragTarget {
-        NONE, MUSIC_INFO, LYRIC, PROGRESS
+        NONE, COVER, MUSIC_INFO, LYRIC, PROGRESS
     }
 
     private DragTarget dragTarget = DragTarget.NONE;
@@ -65,6 +68,7 @@ public class MusicHudRenderer implements HudElement {
         }
 
         this.renderLyric(extractor, player);
+        this.renderLyricActionBar(player);
         this.renderDragHints(extractor);
 
         if (!Configs.GUI.MUSIC_INFO.getBooleanValue()) {
@@ -79,9 +83,22 @@ public class MusicHudRenderer implements HudElement {
 
         extractor.fill(width - 175 - x, y, width - x, 48 + y, Configs.GUI.MUSIC_INFO_COLOR.getIntegerValue());
         extractor.fill(width - 145 - x, 40 + y, width - 30 - x, 43 + y, Configs.GUI.MUSIC_PROGRESS_BAR_COLOR.getIntegerValue());
-        int progress = Math.round((115 / (float) playingMusic.getDurationSecond()) * player.getPlayingProgressSecond());
+        int progress;
+        if (this.dragTarget == DragTarget.PROGRESS) {
+            int[] progressRect = this.getProgressRect();
+            double dragRatio = 0;
+            if (progressRect != null && progressRect[2] > progressRect[0]) {
+                dragRatio = (this.dragMouseX - progressRect[0]) / (double) (progressRect[2] - progressRect[0]);
+            }
+            progress = (int) Math.round(115 * Math.max(0, Math.min(1, dragRatio)));
+        } else {
+            progress = Math.round((115 / (float) playingMusic.getDurationSecond()) * player.getPlayingProgressSecond());
+        }
         if (progress > 115) {
             progress = 115;
+        }
+        if (progress < 0) {
+            progress = 0;
         }
         extractor.fill(width - 145 - x, 40 + y, width - 145 + progress - x, 43 + y, Configs.GUI.MUSIC_PLAYED_PROGRESS_BAR_COLOR.getIntegerValue());
         this.renderProgressDragPreview(extractor);
@@ -122,7 +139,7 @@ public class MusicHudRenderer implements HudElement {
     }
 
     private void renderLyric(GuiGraphicsExtractor extractor, MusicPlayer player) {
-        if (!Configs.GUI.LYRIC.getBooleanValue()) {
+        if (Configs.GUI.LYRIC_STYLE.getOptionListValue() != LyricStyle.DEFAULT) {
             return;
         }
 
@@ -143,6 +160,28 @@ public class MusicHudRenderer implements HudElement {
             lyricY += 10;
         }
         pose.popMatrix();
+    }
+
+    /**
+     * ActionBar 样式: 用原版 setOverlayMessage 居中显示当前歌词 (即 /title actionbar 的样式),
+     * 每帧刷新以保持常驻, 自适应屏幕宽度
+     */
+    private void renderLyricActionBar(MusicPlayer player) {
+        if (Configs.GUI.LYRIC_STYLE.getOptionListValue() != LyricStyle.ACTIONBAR) {
+            return;
+        }
+
+        String[] lyrics = player.getLyric();
+        if (lyrics.length == 0) {
+            return;
+        }
+
+        MutableComponent message = Component.literal(lyrics[0]);
+        for (int i = 1; i < lyrics.length; i++) {
+            message.append(Component.literal("  ").withStyle(ChatFormatting.DARK_GRAY))
+                    .append(Component.literal(lyrics[i]).withStyle(ChatFormatting.GRAY));
+        }
+        this.client.gui.hud.setOverlayMessage(message, false);
     }
 
     private void renderLoginQrCode(GuiGraphicsExtractor extractor) {
@@ -237,6 +276,8 @@ public class MusicHudRenderer implements HudElement {
     private void endDrag() {
         if (this.dragTarget == DragTarget.PROGRESS) {
             this.seekByProgressMouse();
+        } else if (this.dragTarget == DragTarget.COVER) {
+            MusicCommand.getPlayer().switchPlay();
         } else if (this.dragTarget != DragTarget.NONE) {
             Configs.INSTANCE.save();
         }
@@ -274,7 +315,14 @@ public class MusicHudRenderer implements HudElement {
         double mouseX = this.client.mouseHandler.getScaledXPos(this.client.getWindow());
         double mouseY = this.client.mouseHandler.getScaledYPos(this.client.getWindow());
 
-        int[] rect = this.getProgressRect();
+        int[] rect = this.getCoverRect();
+        if (rect != null && this.isInRect(mouseX, mouseY, rect)) {
+            this.drawRectBorder(extractor, rect, 0xAAFFFFFF);
+            extractor.requestCursor(CursorTypes.POINTING_HAND);
+            return;
+        }
+
+        rect = this.getProgressRect();
         if (rect != null && this.isInRect(mouseX, mouseY, rect)) {
             this.drawRectBorder(extractor, rect, 0xAAFFFFFF);
             extractor.requestCursor(CursorTypes.RESIZE_EW);
@@ -313,7 +361,12 @@ public class MusicHudRenderer implements HudElement {
     }
 
     private DragTarget getDragTargetAt(double mouseX, double mouseY) {
-        int[] rect = this.getProgressRect();
+        int[] rect = this.getCoverRect();
+        if (rect != null && this.isInRect(mouseX, mouseY, rect)) {
+            return DragTarget.COVER;
+        }
+
+        rect = this.getProgressRect();
         if (rect != null && this.isInRect(mouseX, mouseY, rect)) {
             return DragTarget.PROGRESS;
         }
@@ -329,6 +382,27 @@ public class MusicHudRenderer implements HudElement {
         }
 
         return DragTarget.NONE;
+    }
+
+    /**
+     * 专辑封面的点击区域 (点击切换播放/暂停), 不可见时返回 null
+     */
+    private int[] getCoverRect() {
+        MusicPlayer player = MusicCommand.getPlayer();
+        if (player.getPlayingMusic() == null) {
+            return null;
+        }
+        if (Configs.GUI.STOP_PLAY_SHOW_UI.getBooleanValue() && !player.isPlaying()) {
+            return null;
+        }
+        if (!Configs.GUI.MUSIC_INFO.getBooleanValue()) {
+            return null;
+        }
+
+        int width = this.client.getWindow().getGuiScaledWidth();
+        int[] pos = this.getMusicInfoPos();
+        int iconY = (int) (2.5f + pos[0]);
+        return new int[]{width - 172 - pos[1], iconY, width - 172 - pos[1] + 32, iconY + 32};
     }
 
     /**
@@ -378,7 +452,7 @@ public class MusicHudRenderer implements HudElement {
      * 歌词的屏幕区域(按缩放计算), 没有歌词或关闭时返回 null
      */
     private int[] getLyricRect() {
-        if (!Configs.GUI.LYRIC.getBooleanValue()) {
+        if (Configs.GUI.LYRIC_STYLE.getOptionListValue() != LyricStyle.DEFAULT) {
             return null;
         }
 

@@ -201,11 +201,19 @@ public class MusicPlayer implements Runnable {
                 try {
                     audioInputStream.close();
                     audioInputStream = this.seekStream(seekTarget);
+                    play.flush();
                     this.startPlayingTime = System.currentTimeMillis() - seekTarget;
                     this.playingProgress = seekTarget;
                 } catch (Exception err) {
                     err.printStackTrace();
-                    break;
+                    try {
+                        audioInputStream = this.openAudioInputStream();
+                        play.flush();
+                        this.startPlayingTime = System.currentTimeMillis();
+                        this.playingProgress = 0;
+                    } catch (Exception err2) {
+                        break;
+                    }
                 }
                 continue;
             }
@@ -255,14 +263,18 @@ public class MusicPlayer implements Runnable {
             return stream;
         }
 
+        // 不能用 skip(): mp3spi 等解码后的转换流上 skip() 按压缩源字节跳过,
+        // 会大幅越过目标位置直接读到 EOF, 导致 seek 后当前歌曲结束/自动切歌。
+        // 改为从头部读取并丢弃 PCM 字节, 精确停在目标位置。
         long bytesToSkip = (long) (targetMs / 1000.0 * bytesPerSecond);
+        byte[] buffer = new byte[65536];
         long skipped = 0;
         while (skipped < bytesToSkip) {
-            long s = stream.skip(bytesToSkip - skipped);
-            if (s <= 0) {
+            int read = stream.read(buffer, 0, (int) Math.min(buffer.length, bytesToSkip - skipped));
+            if (read <= 0) {
                 break;
             }
-            skipped += s;
+            skipped += read;
         }
         return stream;
     }
@@ -443,6 +455,21 @@ public class MusicPlayer implements Runnable {
             notifyAll();
         }
         this.loopPlayIn = false;
+    }
+
+    /**
+     * 切换播放/暂停 (点击专辑封面等场景使用)
+     */
+    public void switchPlay() {
+        if (this.playingMusic == null || !this.notExitFlag) {
+            return;
+        }
+
+        if (this.isPlaying()) {
+            this.stop();
+        } else {
+            this.continues();
+        }
     }
 
     /**

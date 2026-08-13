@@ -8,6 +8,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import fengliu.cloudmusic.config.Configs;
+import fengliu.cloudmusic.config.LyricStyle;
 import fengliu.cloudmusic.music163.*;
 import fengliu.cloudmusic.music163.data.*;
 import fengliu.cloudmusic.util.MusicPlayer;
@@ -1550,21 +1551,26 @@ public class MusicCommand {
                 }))
         );
 
-        // cloudmusic lyric [on|off]
+        // cloudmusic lyric [default|actionbar|off]
         CloudMusic.then(literal("lyric").executes(context -> {
-            Configs.GUI.LYRIC.setBooleanValue(!Configs.GUI.LYRIC.getBooleanValue());
-            Configs.INSTANCE.save();
-            context.getSource().sendFeedback(Component.translatable(Configs.GUI.LYRIC.getBooleanValue() ? "cloudmusic.info.command.lyric.on" : "cloudmusic.info.command.lyric.off"));
+            LyricStyle style = (LyricStyle) Configs.GUI.LYRIC_STYLE.getOptionListValue();
+            context.getSource().sendFeedback(Component.translatable("cloudmusic.info.command.lyric.current", style.getDisplayName()));
             return Command.SINGLE_SUCCESS;
         }));
-        CloudMusic.then(literal("lyric").then(literal("on").executes(context -> {
-            Configs.GUI.LYRIC.setBooleanValue(true);
+        CloudMusic.then(literal("lyric").then(literal("default").executes(context -> {
+            Configs.GUI.LYRIC_STYLE.setOptionListValue(LyricStyle.DEFAULT);
             Configs.INSTANCE.save();
-            context.getSource().sendFeedback(Component.translatable("cloudmusic.info.command.lyric.on"));
+            context.getSource().sendFeedback(Component.translatable("cloudmusic.info.command.lyric.default"));
+            return Command.SINGLE_SUCCESS;
+        })));
+        CloudMusic.then(literal("lyric").then(literal("actionbar").executes(context -> {
+            Configs.GUI.LYRIC_STYLE.setOptionListValue(LyricStyle.ACTIONBAR);
+            Configs.INSTANCE.save();
+            context.getSource().sendFeedback(Component.translatable("cloudmusic.info.command.lyric.actionbar"));
             return Command.SINGLE_SUCCESS;
         })));
         CloudMusic.then(literal("lyric").then(literal("off").executes(context -> {
-            Configs.GUI.LYRIC.setBooleanValue(false);
+            Configs.GUI.LYRIC_STYLE.setOptionListValue(LyricStyle.OFF);
             Configs.INSTANCE.save();
             context.getSource().sendFeedback(Component.translatable("cloudmusic.info.command.lyric.off"));
             return Command.SINGLE_SUCCESS;
