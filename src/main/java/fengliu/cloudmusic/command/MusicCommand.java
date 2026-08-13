@@ -152,6 +152,8 @@ public class MusicCommand {
 
             Component.translatable("cloudmusic.help.volume"),
             Component.translatable("cloudmusic.help.volume.volume"),
+            Component.translatable("cloudmusic.help.lyric"),
+            Component.translatable("cloudmusic.help.musicinfo"),
 
             Component.translatable("cloudmusic.help.page.prev"),
             Component.translatable("cloudmusic.help.page.next"),
@@ -1547,6 +1549,46 @@ public class MusicCommand {
                     return Command.SINGLE_SUCCESS;
                 }))
         );
+
+        // cloudmusic lyric [on|off]
+        CloudMusic.then(literal("lyric").executes(context -> {
+            Configs.GUI.LYRIC.setBooleanValue(!Configs.GUI.LYRIC.getBooleanValue());
+            Configs.INSTANCE.save();
+            context.getSource().sendFeedback(Component.translatable(Configs.GUI.LYRIC.getBooleanValue() ? "cloudmusic.info.command.lyric.on" : "cloudmusic.info.command.lyric.off"));
+            return Command.SINGLE_SUCCESS;
+        }));
+        CloudMusic.then(literal("lyric").then(literal("on").executes(context -> {
+            Configs.GUI.LYRIC.setBooleanValue(true);
+            Configs.INSTANCE.save();
+            context.getSource().sendFeedback(Component.translatable("cloudmusic.info.command.lyric.on"));
+            return Command.SINGLE_SUCCESS;
+        })));
+        CloudMusic.then(literal("lyric").then(literal("off").executes(context -> {
+            Configs.GUI.LYRIC.setBooleanValue(false);
+            Configs.INSTANCE.save();
+            context.getSource().sendFeedback(Component.translatable("cloudmusic.info.command.lyric.off"));
+            return Command.SINGLE_SUCCESS;
+        })));
+
+        // cloudmusic musicinfo [on|off]
+        CloudMusic.then(literal("musicinfo").executes(context -> {
+            Configs.GUI.MUSIC_INFO.setBooleanValue(!Configs.GUI.MUSIC_INFO.getBooleanValue());
+            Configs.INSTANCE.save();
+            context.getSource().sendFeedback(Component.translatable(Configs.GUI.MUSIC_INFO.getBooleanValue() ? "cloudmusic.info.command.musicinfo.on" : "cloudmusic.info.command.musicinfo.off"));
+            return Command.SINGLE_SUCCESS;
+        }));
+        CloudMusic.then(literal("musicinfo").then(literal("on").executes(context -> {
+            Configs.GUI.MUSIC_INFO.setBooleanValue(true);
+            Configs.INSTANCE.save();
+            context.getSource().sendFeedback(Component.translatable("cloudmusic.info.command.musicinfo.on"));
+            return Command.SINGLE_SUCCESS;
+        })));
+        CloudMusic.then(literal("musicinfo").then(literal("off").executes(context -> {
+            Configs.GUI.MUSIC_INFO.setBooleanValue(false);
+            Configs.INSTANCE.save();
+            context.getSource().sendFeedback(Component.translatable("cloudmusic.info.command.musicinfo.off"));
+            return Command.SINGLE_SUCCESS;
+        })));
 
         // cloudmusic page prev
         CloudMusic.then(Page.then(literal("prev").executes(context -> {

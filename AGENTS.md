@@ -7,10 +7,11 @@
 
 - 分支：`codex/mc-26.2`；远端 `origin` = `https://github.com/tomh500/CloudMusic-Mod.git`
 - 移植进度：**基本可用**——播放、聊天指令、登录、二维码、HUD 封面/方框均正常。
-- 刚修复的最后一个 bug：**HUD 右上角音乐信息面板只显示封面和方框、文字全部不显示**。
-  根因：MC 26.2 的 `GuiGraphicsExtractor.text(...)` 在颜色 `ARGB.alpha==0` 时直接 return，而本 mod 所有文字颜色默认值都是 `#00...`（alpha=0）。
-  修复：`Configs.java` 默认色改为 `#FF...`；`ConfigUtil.addConfigColor()` 无参默认值改为 `#FFFFFFFF`；`MusicHudRenderer.java` 新增 `forceOpaqueColor()` 兜底（防止用户旧配置文件里存的 `#00...` 值再次导致文字不显示）。
-- 接下来：用户测试本修复 → 第一次 commit + push → 用户会另开新对话做优化。
+- 已修复：**HUD 文字不显示**（`GuiGraphicsExtractor.text(...)` 遇 `alpha==0` 直接 return，默认色全是 `#00...`）。修复：`Configs.java`/`ConfigUtil.java` 默认色改 `#FF...`；`MusicHudRenderer.forceOpaqueColor()` 兜底防旧配置。
+- 已修复：**歌词显示明显慢于歌曲**（见"已知问题"第 5 节，网易云 LRC 是三位毫秒时间戳，原 `timeStrToTime` 按两位厘秒 `*10` 算，每行歌词时间被算大 0~9 秒）。
+- 新增：`/cloudmusic lyric [on|off]` 与 `/cloudmusic musicinfo [on|off]` 开关歌词/歌曲信息面板（原来 LYRIC 开关在渲染层根本没被检查，开了等于没开）。
+- 新增：**聊天栏打开时可用鼠标拖动歌词和歌曲信息面板**，松手后位置写入 malilib 配置 `music.info.x/y`、`lyric.x/y`，悬停时显示白色边框 + 移动光标。
+- 接下来：用户测试以上修复 → 提交 + push → 用户会另开新对话做优化。
 
 ## 2. 构建 / 部署 / 日志（必读）
 
@@ -44,7 +45,7 @@
 
 - `CloudMusicClient.java`：入口，注册指令、HUD（`MusicHudRenderer.register()`）、hotkey、输入。
 - `command/MusicCommand.java`：全部 `/cloudmusic` 聊天指令；`runCommand` 在 `CloudMusic Thread` 异步线程执行，**跨线程发聊天消息必须用 `Minecraft.getInstance().execute(...)` 桥接**。
-- `render/MusicHudRenderer.java`（新增）：HUD 三块——歌曲信息面板（封面+文字+进度条）、歌词、登录二维码。
+- `render/MusicHudRenderer.java`（新增）：HUD 三块——歌曲信息面板（封面+文字+进度条）、歌词、登录二维码。还负责聊天栏拖拽：`handleDrag()` 每帧轮询（仅 `client.gui.screen() instanceof ChatScreen` 时生效，26.2 当前屏幕在 `Gui` 上，不是 `Minecraft.screen`），`getMusicInfoRect()/getLyricRect()` 算屏幕区域，`renderDragHints()` 画边框 + `extractor.requestCursor(CursorTypes.RESIZE_ALL)`，松手 `Configs.INSTANCE.save()`。
 - `render/MusicIconTexture.java`：封面 / 二维码 → `DynamicTexture` 注册（注意渲染线程）。
 - `mixin/` 共 4 个：`ChatHudMixin`、`ClientPlayerEntityMixin`（附近怪物降音量）、`MinecraftClientMixin`（断线/退出停音乐）、`SoundSystemMixin`（播歌时屏蔽 MC 音乐）。
 - `music163/`：网易云 API 封装（登录、搜索、歌单、评论等）；`LoginMusic163.java` 负责账号/二维码登录。
@@ -53,6 +54,8 @@
 
 - 网易登录 `502` = 密码错误 / 风控，**不是代码 bug**；优先推荐二维码登录。
 - 密码参数已改用 `StringArgumentType.greedyString()`（原来用 `string` 会把含空格/`?` 的密码截断）。
+- **歌词慢的根因（已修）**：网易云 LRC 时间戳是三位毫秒 `[00:12.345]`，原 `Lyric.timeStrToTime` 用 `小数*10`（按两位厘秒）计算，把时间算大 0~9 秒 → 歌词永远落后。现兼容 1/2/3 位小数。另外 `Lyric.run()` 原来是 `while(loopIn)` 空转 busy-wait 读非 volatile 的 `playingProgress`（数据竞争 + 100% CPU），已改为 50ms 休眠轮询 + `MusicPlayer` 字段加 `volatile` + 一次推进所有已到时间的行。
+- 网易云 LRC 开头有 `作词/作曲/编曲/制作人...` 制作信息行（占 0~7s），`Lyric.lyricToMap` 会按 `METADATA_LINE` 正则跳过，不显示在歌词区。
 - 已修复的历史 bug：SoundSystemMixin 返回值导致崩溃；二维码 blit 参数顺序导致渲染乱跑；动态纹理线程问题；HUD 文字 alpha=0 不显示。
 
 ## 6. 本环境注意事项（给 AI 代理）

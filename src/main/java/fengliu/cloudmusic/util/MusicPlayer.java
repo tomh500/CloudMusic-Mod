@@ -33,11 +33,11 @@ public class MusicPlayer implements Runnable {
     private Lyric lyric;
     protected int playIn = 0;
     protected int playListSize;
-    protected boolean loopPlayIn = true;
-    protected boolean notExitFlag = true;
-    private boolean load;
+    protected volatile boolean loopPlayIn = true;
+    protected volatile boolean notExitFlag = true;
+    private volatile boolean load;
     private int volumePercentage;
-    private long playingProgress;
+    private volatile long playingProgress;
     private long startPlayingTime;
 
     /**

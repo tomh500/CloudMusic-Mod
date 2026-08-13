@@ -483,5 +483,11 @@
     "cloudmusic.config.nearby.monster.decrease.volume.radius": "敌对生物检测半径 | nearby.decrease.sound.radius",
     "cloudmusic.config.nearby.monster.decrease.volume.radius.comment": "附近敌对生物的检测半径",
     "cloudmusic.config.nearby.monster.is.survival": "只有生存下有敌对生物时减小音量 | nearby.monster.is.survival",
-    "cloudmusic.config.nearby.monster.is.survival.comment": "只有生存模式下附近有敌对生物时减小音量"
+    "cloudmusic.config.nearby.monster.is.survival.comment": "只有生存模式下附近有敌对生物时减小音量",
+    "cloudmusic.help.lyric": "开关歌词显示 /cloudmusic lyric [on/off]",
+    "cloudmusic.help.musicinfo": "开关歌曲信息面板 /cloudmusic musicinfo [on/off]",
+    "cloudmusic.info.command.lyric.on": "已开启歌词显示",
+    "cloudmusic.info.command.lyric.off": "已关闭歌词显示",
+    "cloudmusic.info.command.musicinfo.on": "已开启歌曲信息面板",
+    "cloudmusic.info.command.musicinfo.off": "已关闭歌曲信息面板"
 }
