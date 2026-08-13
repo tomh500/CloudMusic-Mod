@@ -11,6 +11,10 @@
 - 已修复：**歌词显示明显慢于歌曲**（见"已知问题"第 5 节，网易云 LRC 是三位毫秒时间戳，原 `timeStrToTime` 按两位厘秒 `*10` 算，每行歌词时间被算大 0~9 秒）。
 - 新增：`/cloudmusic lyric [on|off]` 与 `/cloudmusic musicinfo [on|off]` 开关歌词/歌曲信息面板（原来 LYRIC 开关在渲染层根本没被检查，开了等于没开）。
 - 新增：**聊天栏打开时可用鼠标拖动歌词和歌曲信息面板**，松手后位置写入 malilib 配置 `music.info.x/y`、`lyric.x/y`，悬停时显示白色边框 + 移动光标。
+- 新增：**聊天栏里可拖动进度条快速跳转**（`MusicPlayer.seek(ms)`：重新打开播放源并 skip 字节，见下）。
+- 新增：**打开背包等非聊天界面时隐藏全部控件**，回到游戏世界按配置重新渲染（`isUiHidden()`）。
+- 已修复：**音量条 50~60 几乎听不见**——原 `gain = min*(1-v/100)` 是分贝线性（50≈-40dB），改为 `max-(max-min)*(1-v/100)^2` 平方感知曲线（50≈-15dB、60≈-8dB）。
+- 已修复：**聊天栏拖拽失效**——26.2 的 `MouseHandler.isLeftPressed` 只在无界面时更新，屏幕打开时永远是 false；改用 `GLFW.glfwGetMouseButton(handle, GLFW_MOUSE_BUTTON_LEFT)` 原始按键状态。
 - 接下来：用户测试以上修复 → 提交 + push → 用户会另开新对话做优化。
 
 ## 2. 构建 / 部署 / 日志（必读）
@@ -45,7 +49,7 @@
 
 - `CloudMusicClient.java`：入口，注册指令、HUD（`MusicHudRenderer.register()`）、hotkey、输入。
 - `command/MusicCommand.java`：全部 `/cloudmusic` 聊天指令；`runCommand` 在 `CloudMusic Thread` 异步线程执行，**跨线程发聊天消息必须用 `Minecraft.getInstance().execute(...)` 桥接**。
-- `render/MusicHudRenderer.java`（新增）：HUD 三块——歌曲信息面板（封面+文字+进度条）、歌词、登录二维码。还负责聊天栏拖拽：`handleDrag()` 每帧轮询（仅 `client.gui.screen() instanceof ChatScreen` 时生效，26.2 当前屏幕在 `Gui` 上，不是 `Minecraft.screen`），`getMusicInfoRect()/getLyricRect()` 算屏幕区域，`renderDragHints()` 画边框 + `extractor.requestCursor(CursorTypes.RESIZE_ALL)`，松手 `Configs.INSTANCE.save()`。
+- `render/MusicHudRenderer.java`（新增）：HUD 三块——歌曲信息面板（封面+文字+进度条）、歌词、登录二维码。还负责聊天栏拖拽：`handleDrag()` 每帧轮询（仅 `client.gui.screen() instanceof ChatScreen` 时生效，26.2 当前屏幕在 `Gui` 上，不是 `Minecraft.screen`），拖拽目标分 `MUSIC_INFO / LYRIC / PROGRESS`（进度条优先，松手时 `seek`），按键状态用 `GLFW.glfwGetMouseButton`（`MouseHandler.isLeftPressed` 在屏幕打开时不更新）；`renderDragHints()` 画边框 + `requestCursor`（面板/歌词 `RESIZE_ALL`，进度条 `RESIZE_EW`）；松手 `Configs.INSTANCE.save()`；`isUiHidden()` 在非聊天界面时隐藏全部控件。
 - `render/MusicIconTexture.java`：封面 / 二维码 → `DynamicTexture` 注册（注意渲染线程）。
 - `mixin/` 共 4 个：`ChatHudMixin`、`ClientPlayerEntityMixin`（附近怪物降音量）、`MinecraftClientMixin`（断线/退出停音乐）、`SoundSystemMixin`（播歌时屏蔽 MC 音乐）。
 - `music163/`：网易云 API 封装（登录、搜索、歌单、评论等）；`LoginMusic163.java` 负责账号/二维码登录。
@@ -56,6 +60,8 @@
 - 密码参数已改用 `StringArgumentType.greedyString()`（原来用 `string` 会把含空格/`?` 的密码截断）。
 - **歌词慢的根因（已修）**：网易云 LRC 时间戳是三位毫秒 `[00:12.345]`，原 `Lyric.timeStrToTime` 用 `小数*10`（按两位厘秒）计算，把时间算大 0~9 秒 → 歌词永远落后。现兼容 1/2/3 位小数。另外 `Lyric.run()` 原来是 `while(loopIn)` 空转 busy-wait 读非 volatile 的 `playingProgress`（数据竞争 + 100% CPU），已改为 50ms 休眠轮询 + `MusicPlayer` 字段加 `volatile` + 一次推进所有已到时间的行。
 - 网易云 LRC 开头有 `作词/作曲/编曲/制作人...` 制作信息行（占 0~7s），`Lyric.lyricToMap` 会按 `METADATA_LINE` 正则跳过，不显示在歌词区。
+- **音量曲线**：MASTER_GAIN 是分贝单位，线性映射会让低音量段几乎无声。`volumeSet` 用 `maxGain-(maxGain-minGain)*(1-v/100)^2` 平方曲线。
+- **seek 实现**：`MusicPlayer.seek(ms)` 只设 `seekTargetMs`（volatile），播放循环检测到后关闭当前流、`openAudioInputStream()` 重开（本地文件 `playFile` 或 URL `playUrl`）并按 `frameRate*frameSize` 换算字节 `skip`，再 `startPlayingTime = now - target` 继续。歌词线程每 50ms 轮询进度，往回调时从头部重找当前行（`index < 0 || time < entries.get(index).getKey()` 分支）。
 - 已修复的历史 bug：SoundSystemMixin 返回值导致崩溃；二维码 blit 参数顺序导致渲染乱跑；动态纹理线程问题；HUD 文字 alpha=0 不显示。
 
 ## 6. 本环境注意事项（给 AI 代理）

@@ -124,7 +124,7 @@ public class Lyric implements Runnable{
         List<Map.Entry<Long, String>> entries = new ArrayList<>(this.lyric.entrySet());
         LOGGER.info("[CloudMusic][Lyric] 歌词线程启动, 有效歌词行数={}", entries.size());
 
-        int index = 0;
+        int index = -1;
         while (this.loopIn) {
             synchronized(this){
                 while (!this.load && this.loopIn) {
@@ -141,27 +141,36 @@ public class Lyric implements Runnable{
             }
 
             long time = player.getPlayingProgress();
-            boolean changed = false;
-            // 一次推进所有已经到时间的歌词行, 避免线程卡顿/恢复后停留在旧行
-            while (index < entries.size() && time >= entries.get(index).getKey()){
+            // 当前应显示的行 = 时间戳 <= 当前进度的最后一行
+            int targetIndex = index;
+            if (index < 0 || time < entries.get(index).getKey()) {
+                // 刚开始播放或往回调(跳转): 从头找当前应显示的行
+                targetIndex = -1;
+                while (targetIndex + 1 < entries.size() && time >= entries.get(targetIndex + 1).getKey()) {
+                    targetIndex++;
+                }
+            } else {
+                while (targetIndex + 1 < entries.size() && time >= entries.get(targetIndex + 1).getKey()) {
+                    targetIndex++;
+                }
+            }
+
+            if (targetIndex != index && targetIndex >= 0){
+                index = targetIndex;
                 Map.Entry<Long, String> entry = entries.get(index);
                 String tlyric = this.tlyric.get(entry.getKey());
                 this.toLyric = (tlyric == null) ? new String[]{entry.getValue()} : new String[]{entry.getValue(), tlyric};
                 LOGGER.info("[CloudMusic][Lyric] 显示歌词 (时间={}ms, 行={}): {}", entry.getKey(), index + 1, entry.getValue().length() > 20 ? entry.getValue().substring(0, 20) + "..." : entry.getValue());
-                index++;
-                changed = true;
             }
 
-            if (index >= entries.size()){
+            if (!this.loopIn) {
                 break;
             }
 
-            if (!changed){
-                try {
-                    Thread.sleep(50L);
-                } catch (InterruptedException e) {
-                    return;
-                }
+            try {
+                Thread.sleep(50L);
+            } catch (InterruptedException e) {
+                return;
             }
         }
 

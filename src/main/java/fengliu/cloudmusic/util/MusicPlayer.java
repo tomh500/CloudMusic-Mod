@@ -39,6 +39,9 @@ public class MusicPlayer implements Runnable {
     private int volumePercentage;
     private volatile long playingProgress;
     private long startPlayingTime;
+    private volatile long seekTargetMs = -1;
+    private File playFile = null;
+    private String playUrl = null;
 
     /**
      * 歌曲播放对象
@@ -169,12 +172,6 @@ public class MusicPlayer implements Runnable {
      */
     private void play(AudioInputStream audioInputStream) throws IOException, InterruptedException, LineUnavailableException {
         AudioFormat audioFormat = audioInputStream.getFormat();
-        // 转换文件编码
-        if (audioFormat.getEncoding() != AudioFormat.Encoding.PCM_SIGNED) {
-            System.out.println(audioFormat.getEncoding());
-            audioFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, audioFormat.getSampleRate(), 16, audioFormat.getChannels(), audioFormat.getChannels() * 2, audioFormat.getSampleRate(), false);
-            audioInputStream = AudioSystem.getAudioInputStream(audioFormat, audioInputStream);
-        }
 
         DataLine.Info dataLineInfo = new DataLine.Info(SourceDataLine.class, audioFormat, AudioSystem.NOT_SPECIFIED);
         play = (SourceDataLine) AudioSystem.getLine(dataLineInfo);
@@ -197,6 +194,22 @@ public class MusicPlayer implements Runnable {
                 while (!load)
                     wait();
             }
+
+            long seekTarget = this.seekTargetMs;
+            if (seekTarget >= 0) {
+                this.seekTargetMs = -1;
+                try {
+                    audioInputStream.close();
+                    audioInputStream = this.seekStream(seekTarget);
+                    this.startPlayingTime = System.currentTimeMillis() - seekTarget;
+                    this.playingProgress = seekTarget;
+                } catch (Exception err) {
+                    err.printStackTrace();
+                    break;
+                }
+                continue;
+            }
+
             play.write(tempBuff, 0, count);
             this.playingProgress = System.currentTimeMillis() - this.startPlayingTime;
         }
@@ -208,13 +221,76 @@ public class MusicPlayer implements Runnable {
     }
 
     /**
+     * 打开并解码当前播放源 (本地文件或 URL)
+     */
+    private AudioInputStream openAudioInputStream() throws Exception {
+        AudioInputStream stream;
+        if (this.playFile != null) {
+            stream = AudioSystem.getAudioInputStream(this.playFile);
+        } else if (this.playUrl != null) {
+            stream = AudioSystem.getAudioInputStream(AudioSystem.getAudioInputStream(new URL(this.playUrl)));
+        } else {
+            throw new IllegalStateException("没有可播放的音频源");
+        }
+
+        AudioFormat sourceFormat = stream.getFormat();
+        // 转换文件编码
+        if (sourceFormat.getEncoding() != AudioFormat.Encoding.PCM_SIGNED) {
+            System.out.println(sourceFormat.getEncoding());
+            AudioFormat pcmFormat = new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sourceFormat.getSampleRate(), 16, sourceFormat.getChannels(), sourceFormat.getChannels() * 2, sourceFormat.getSampleRate(), false);
+            stream = AudioSystem.getAudioInputStream(pcmFormat, stream);
+        }
+
+        return stream;
+    }
+
+    /**
+     * 重新打开播放源并跳转到指定毫秒位置
+     */
+    private AudioInputStream seekStream(long targetMs) throws Exception {
+        AudioInputStream stream = this.openAudioInputStream();
+        AudioFormat format = stream.getFormat();
+        long bytesPerSecond = (long) (format.getFrameRate() * format.getFrameSize());
+        if (bytesPerSecond <= 0) {
+            return stream;
+        }
+
+        long bytesToSkip = (long) (targetMs / 1000.0 * bytesPerSecond);
+        long skipped = 0;
+        while (skipped < bytesToSkip) {
+            long s = stream.skip(bytesToSkip - skipped);
+            if (s <= 0) {
+                break;
+            }
+            skipped += s;
+        }
+        return stream;
+    }
+
+    /**
+     * 跳转到指定播放位置 (毫秒)
+     *
+     * @param ms 目标毫秒
+     */
+    public void seek(long ms) {
+        if (this.playingMusic == null || this.play == null) {
+            return;
+        }
+
+        long durationMs = this.playingMusic.getDurationSecond() * 1000L;
+        this.seekTargetMs = Math.max(0, Math.min(ms, durationMs));
+    }
+
+    /**
      * 通过 URL 播放歌曲
      *
      * @param url 歌曲 url
      */
     private void play(String url) {
         try {
-            this.play(AudioSystem.getAudioInputStream(AudioSystem.getAudioInputStream(new URL(url))));
+            this.playFile = null;
+            this.playUrl = url;
+            this.play(this.openAudioInputStream());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -227,7 +303,9 @@ public class MusicPlayer implements Runnable {
      */
     private void play(File file) {
         try {
-            this.play(AudioSystem.getAudioInputStream(file));
+            this.playUrl = null;
+            this.playFile = file;
+            this.play(this.openAudioInputStream());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -253,7 +331,13 @@ public class MusicPlayer implements Runnable {
         }
 
         FloatControl gainControl = (FloatControl) this.play.getControl(FloatControl.Type.MASTER_GAIN);
-        gainControl.setValue(gainControl.getMinimum() * (1 - volume / 100.0f));
+        float minGain = gainControl.getMinimum();
+        float maxGain = gainControl.getMaximum();
+        // 人耳对分贝是对数感知: 之前 min*(1-v/100) 是分贝线性, 50~60 音量相当于 -32~-40dB 几乎听不见。
+        // 改用平方曲线把低音量段抬高, 让音量条上的数值接近实际听感
+        float t = volume / 100.0f;
+        float gain = maxGain - (maxGain - minGain) * (1 - t) * (1 - t);
+        gainControl.setValue(gain);
 
         Configs.PLAY.VOLUME.setIntegerValue(this.volumePercentage);
         Configs.INSTANCE.save();
