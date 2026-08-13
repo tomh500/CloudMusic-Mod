@@ -1,6 +1,6 @@
 package fengliu.cloudmusic.music163;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 /**
  * 分享类别
@@ -34,7 +34,7 @@ public enum Shares {
      * @return 一致 true
      */
     public boolean isShar(String sharText){
-        return Text.translatable(translationKey).getString().equals(sharText);
+        return Component.translatable(translationKey).getString().equals(sharText);
     }
 
     /**
@@ -43,7 +43,7 @@ public enum Shares {
      * @return 分享消息字符串
      */
     public String getShar(long id){
-        return "CloudMusic# " + Text.translatable(translationKey).getString() + " id: " + id;
+        return "CloudMusic# " + Component.translatable(translationKey).getString() + " id: " + id;
     }
 
     /**

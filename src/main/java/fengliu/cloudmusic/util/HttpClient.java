@@ -4,8 +4,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import fengliu.cloudmusic.config.Configs;
 import fengliu.cloudmusic.music163.ActionException;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.*;
@@ -17,6 +19,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 public class HttpClient {
+    private static final Logger LOGGER = LoggerFactory.getLogger("cloudmusic");
     private final String MainPath;
     private final Map<String, String> Header;
 
@@ -85,8 +88,9 @@ public class HttpClient {
         JsonObject json = result.getJson();
         
         int code = json.get("code").getAsInt();
+        LOGGER.info("[CloudMusic][HTTP] POST_API {} api_code={}", path, code);
         if(code == 301){
-            throw new ActionException(Text.translatable("cloudmusic.exception.cookie.use"));
+            throw new ActionException(Component.translatable("cloudmusic.exception.cookie.use"));
         }
 
         if(code != 200){
@@ -105,24 +109,25 @@ public class HttpClient {
         JsonObject json = result.getJson();
         
         int code = json.get("code").getAsInt();
+        LOGGER.info("[CloudMusic][HTTP] POST_LOGIN {} api_code={}", path, code);
         if(code == 400){
-            throw new ActionException(Text.translatable("cloudmusic.exception.login.400"));
+            throw new ActionException(Component.translatable("cloudmusic.exception.login.400"));
         }
 
         if(code == 501){
-            throw new ActionException(Text.translatable("cloudmusic.exception.login.501"));
+            throw new ActionException(Component.translatable("cloudmusic.exception.login.501"));
         }
 
         if(code == 502){
-            throw new ActionException(Text.translatable("cloudmusic.exception.login.502"));
+            throw new ActionException(Component.translatable("cloudmusic.exception.login.502"));
         }
 
         if(code == 503){
-            throw new ActionException(Text.translatable("cloudmusic.exception.login.503"));
+            throw new ActionException(Component.translatable("cloudmusic.exception.login.503"));
         }
 
         if(code != 200){
-            throw new ActionException(Text.translatable("cloudmusic.exception.login.err.code", json.toString()));
+            throw new ActionException(Component.translatable("cloudmusic.exception.login.err.code", json.toString()));
         }
 
         return result.getSetCookie();
@@ -156,6 +161,7 @@ public class HttpClient {
         HttpURLConnection httpConnection = null;
         InputStream inputStream = null;
         try {
+            LOGGER.info("[CloudMusic][HTTP] 请求 {} (重试={})", httpUrl, retry);
             //创建连接
             httpConnection = this.setRequestHeader(connection.set((HttpURLConnection) openHttpUrlProxy(httpUrl)));
             if(data != null){
@@ -166,6 +172,7 @@ public class HttpClient {
             httpConnection.connect();
             //获取响应数据
             int code = httpConnection.getResponseCode();
+            LOGGER.info("[CloudMusic][HTTP] {} 响应码={}", httpUrl, code);
             if (code == 200) {
                 inputStream = httpConnection.getInputStream();
                 return new HttpResult(code, true, inputStream.readAllBytes(), httpConnection.getHeaderFields().get("Set-Cookie"));
@@ -174,8 +181,9 @@ public class HttpClient {
                 return new HttpResult(code, false, inputStream.readAllBytes(), httpConnection.getHeaderFields().get("Set-Cookie"));
             }
         } catch (Exception err) {
+            LOGGER.info("[CloudMusic][HTTP] {} 请求异常", httpUrl, err);
             if(retry <= Configs.HTTP.MAX_RETRY.getIntegerValue()){
-                throw new ActionException(Text.translatable("cloudmusic.exception.http", Configs.HTTP.MAX_RETRY.getIntegerValue(), err.getMessage()));
+                throw new ActionException(Component.translatable("cloudmusic.exception.http", Configs.HTTP.MAX_RETRY.getIntegerValue(), err.getMessage()));
             }
             return this.connection(httpUrl, data, connection, ++retry);
         } finally {
@@ -228,8 +236,9 @@ public class HttpClient {
             bin.close();
             out.close();
         } catch (Exception err) {
+            LOGGER.info("[CloudMusic][HTTP] 下载 {} 失败", path, err);
             if(retry <= Configs.HTTP.MAX_RETRY.getIntegerValue()){
-                throw new ActionException(Text.translatable("cloudmusic.exception.http.download", Configs.HTTP.MAX_RETRY.getIntegerValue(), err.getMessage()));
+                throw new ActionException(Component.translatable("cloudmusic.exception.http.download", Configs.HTTP.MAX_RETRY.getIntegerValue(), err.getMessage()));
             }
             return HttpClient.download(path, targetFile, ++retry);
         }
@@ -257,8 +266,9 @@ public class HttpClient {
 
             bin = httpURLConnection.getInputStream();
         } catch (Exception err) {
+            LOGGER.info("[CloudMusic][HTTP] 下载流 {} 失败", path, err);
             if(retry <= Configs.HTTP.MAX_RETRY.getIntegerValue()){
-                throw new ActionException(Text.translatable("cloudmusic.exception.http.download", Configs.HTTP.MAX_RETRY.getIntegerValue(), err.getMessage()));
+                throw new ActionException(Component.translatable("cloudmusic.exception.http.download", Configs.HTTP.MAX_RETRY.getIntegerValue(), err.getMessage()));
             }
             return HttpClient.downloadStream(path, ++retry);
         }

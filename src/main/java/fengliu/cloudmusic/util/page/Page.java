@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import fengliu.cloudmusic.config.Configs;
 import fengliu.cloudmusic.util.TextClickItem;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ public abstract class Page {
     protected final List<List<?>> data;
     protected final int pageCount;
     protected int pageIn;
-    private Text infoText;
+    private Component infoText;
 
     /**
      * 设置每一项的数据格式
@@ -75,14 +75,14 @@ public abstract class Page {
         List<?> pageDataList = this.data.get(this.pageIn);
         int offset = pageDataList.size() * this.pageIn;
 
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
         if (this.infoText != null) {
             source.sendFeedback(this.infoText);
         }
-        source.sendFeedback(Text.translatable("cloudmusic.info.page.count", this.pageIn + 1 + "§c§l/§r" + this.pageCount));
+        source.sendFeedback(Component.translatable("cloudmusic.info.page.count", this.pageIn + 1 + "§c§l/§r" + this.pageCount));
 
         for (Object data : pageDataList) {
-            source.sendFeedback(Text.literal("[%s] ".formatted(offset + pageDataList.indexOf(data) + 1)).append(this.putPageItem(data).build()));
+            source.sendFeedback(Component.literal("[%s] ".formatted(offset + pageDataList.indexOf(data) + 1)).append(this.putPageItem(data).build()));
         }
 
         source.sendFeedback(TextClickItem.combine(
@@ -93,7 +93,7 @@ public abstract class Page {
     }
 
     public void look() {
-        MinecraftClient client = MinecraftClient.getInstance();
+        Minecraft client = Minecraft.getInstance();
         if (client.player == null) {
             return;
         }
@@ -101,21 +101,21 @@ public abstract class Page {
         List<?> pageDataList = this.data.get(this.pageIn);
         int offset = pageDataList.size() * this.pageIn;
 
-        client.player.sendMessage(Text.literal(" "), false);
+        client.player.sendSystemMessage(Component.literal(" "));
         if (this.infoText != null) {
-            client.player.sendMessage(this.infoText, false);
+            client.player.sendSystemMessage(this.infoText);
         }
-        client.player.sendMessage(Text.translatable("cloudmusic.info.page.count", this.pageIn + 1 + "§c§l/§r" + this.pageCount), false);
+        client.player.sendSystemMessage(Component.translatable("cloudmusic.info.page.count", this.pageIn + 1 + "§c§l/§r" + this.pageCount));
 
         for (Object data : pageDataList) {
-            client.player.sendMessage(Text.literal("[%s] ".formatted(offset + pageDataList.indexOf(data) + 1)).append(this.putPageItem(data).build()), false);
+            client.player.sendSystemMessage(Component.literal("[%s] ".formatted(offset + pageDataList.indexOf(data) + 1)).append(this.putPageItem(data).build()));
         }
 
-        client.player.sendMessage(TextClickItem.combine(
+        client.player.sendSystemMessage(TextClickItem.combine(
                 new TextClickItem("page.prev", "/cloudmusic page prev"),
                 new TextClickItem("page.next", "/cloudmusic page next"),
                 new TextClickItem("page.to", "/cloudmusic page to")
-        ), false);
+        ));
     }
 
     public JsonObject getJsonItem(Function<JsonObject, Boolean> get) {
@@ -176,7 +176,7 @@ public abstract class Page {
         this.look(source);
     }
 
-    public void setInfoText(Text info){
+    public void setInfoText(Component info){
         this.infoText = info;
     }
 

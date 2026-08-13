@@ -12,8 +12,8 @@ import fengliu.cloudmusic.util.IdUtil;
 import fengliu.cloudmusic.util.MusicPlayer;
 import fengliu.cloudmusic.util.TextClickItem;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -115,39 +115,39 @@ public class DjRadio extends MusicPlayer implements ICanSubscribe, IPrint, ICanC
 
     @Override
     public void printToChatHud(FabricClientCommandSource source) {
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
 
-        source.sendFeedback(Text.literal(this.name));
+        source.sendFeedback(Component.literal(this.name));
 
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
 
         source.sendFeedback(new TextClickItem(
                 "info.dj.creator",
                 "/cloudmusic user " + this.dj.get("userId").getAsLong()
         ).append("§b" + this.dj.get("nickname").getAsString()).build());
 
-        source.sendFeedback(Text.translatable("cloudmusic.info.dj.category", TextClickItem.combine("§f§l/",
-                text -> text.setStyle(text.getStyle().withColor(Formatting.AQUA).withUnderline(true)),
+        source.sendFeedback(Component.translatable("cloudmusic.info.dj.category", TextClickItem.combine("§f§l/",
+                text -> text.setStyle(text.getStyle().withColor(ChatFormatting.AQUA).withUnderlined(true)),
                 new TextClickItem(
-                        Text.literal(this.category),
-                        Text.translatable(IdUtil.getShowInfo("dj.category")),
+                        Component.literal(this.category),
+                        Component.translatable(IdUtil.getShowInfo("dj.category")),
                         "/cloudmusic dj category " + this.categoryId
                 ),
                 new TextClickItem(
-                        Text.literal(this.secondCategory),
-                        Text.translatable(IdUtil.getShowInfo("dj.category")),
+                        Component.literal(this.secondCategory),
+                        Component.translatable(IdUtil.getShowInfo("dj.category")),
                         "/cloudmusic dj category " + this.secondCategoryId
                 )
         )));
 
-        source.sendFeedback(Text.translatable("cloudmusic.info.dj.size", this.programCount));
-        source.sendFeedback(Text.translatable("cloudmusic.info.dj.count", this.subCount, this.shareCount));
-        source.sendFeedback(Text.translatable("cloudmusic.info.dj.id", this.id));
+        source.sendFeedback(Component.translatable("cloudmusic.info.dj.size", this.programCount));
+        source.sendFeedback(Component.translatable("cloudmusic.info.dj.count", this.subCount, this.shareCount));
+        source.sendFeedback(Component.translatable("cloudmusic.info.dj.id", this.id));
 
         if (this.description != null) {
-            source.sendFeedback(Text.literal(""));
+            source.sendFeedback(Component.literal(""));
             for (String row : this.description) {
-                source.sendFeedback(Text.literal("§7" + row));
+                source.sendFeedback(Component.literal("§7" + row));
             }
         }
 

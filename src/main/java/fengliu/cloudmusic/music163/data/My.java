@@ -9,7 +9,7 @@ import fengliu.cloudmusic.util.IdUtil;
 import fengliu.cloudmusic.util.TextClickItem;
 import fengliu.cloudmusic.util.page.ApiPage;
 import fengliu.cloudmusic.util.page.Page;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,13 +49,13 @@ public class My extends User {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject playList = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         playList.get("name").getAsString(),
                                         playList.getAsJsonObject("creator").get("nickname").getAsString(),
                                         playList.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
                         "/cloudmusic playlist " + playList.get("id").getAsLong()
                 );
             }
@@ -73,8 +73,8 @@ public class My extends User {
             protected TextClickItem putPageItem(Object data) {
                 String historySongsRecent = ((JsonPrimitive) data).getAsString();
                 return new TextClickItem(
-                        Text.literal("§b%s".formatted(historySongsRecent)),
-                        Text.translatable(IdUtil.getShowInfo("page.history.songs.recent"), historySongsRecent),
+                        Component.literal("§b%s".formatted(historySongsRecent)),
+                        Component.translatable(IdUtil.getShowInfo("page.history.songs.recent"), historySongsRecent),
                         "/cloudmusic my recommend history " + historySongsRecent);
             }
         };
@@ -132,12 +132,12 @@ public class My extends User {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject playList = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- id: %s"
+                        Component.literal("§b%s §r§7- id: %s"
                                 .formatted(
                                         playList.get("name").getAsString(),
                                         playList.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page.playlist." + op), playList.get("name").getAsString(), musicId),
+                        Component.translatable(IdUtil.getShowInfo("page.playlist." + op), playList.get("name").getAsString(), musicId),
                         "/cloudmusic playlist %s %s %s".formatted(op, playList.get("id").getAsLong(), musicId)
                 );
             }
@@ -166,13 +166,13 @@ public class My extends User {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject album = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         album.get("name").getAsString(),
                                         album.getAsJsonArray("artists").get(0).getAsJsonObject().get("name").getAsString(),
                                         album.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), album.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), album.get("name").getAsString()),
                         "/cloudmusic album " + album.get("id").getAsLong()
                 );
             }
@@ -201,12 +201,12 @@ public class My extends User {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject artist = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- id: %s"
+                        Component.literal("§b%s §r§7- id: %s"
                                 .formatted(
                                         artist.get("name").getAsString(),
                                         artist.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), artist.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), artist.get("name").getAsString()),
                         "/cloudmusic artist " + artist.get("id").getAsLong()
                 );
             }
@@ -234,13 +234,13 @@ public class My extends User {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject djRadios = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         djRadios.get("name").getAsString(),
                                         djRadios.getAsJsonObject("dj").get("nickname").getAsString(),
                                         djRadios.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), djRadios.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), djRadios.get("name").getAsString()),
                         "/cloudmusic dj " + djRadios.get("id").getAsLong()
                 );
             }
@@ -274,13 +274,13 @@ public class My extends User {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject style = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         style.get("tagName").getAsString(),
                                         style.get("enName").getAsString(),
                                         style.get("tagId").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page.style"), style.get("tagName").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page.style"), style.get("tagName").getAsString()),
                         "/cloudmusic style " + style.get("tagId").getAsInt()
                 );
             }
@@ -325,13 +325,13 @@ public class My extends User {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject playList = ((JsonObject) data).getAsJsonObject("data");
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         playList.get("name").getAsString(),
                                         playList.getAsJsonObject("creator").get("nickname").getAsString(),
                                         playList.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
                         "/cloudmusic playlist " + playList.get("id").getAsLong()
                 );
             }
@@ -350,13 +350,13 @@ public class My extends User {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject album = ((JsonObject) data).getAsJsonObject("data");
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         album.get("name").getAsString(),
                                         album.getAsJsonObject("artist").get("name").getAsString(),
                                         album.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), album.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), album.get("name").getAsString()),
                         "/cloudmusic album " + album.get("id").getAsLong()
                 );
             }
@@ -375,13 +375,13 @@ public class My extends User {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject djRadios = ((JsonObject) data).getAsJsonObject("data");
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         djRadios.get("name").getAsString(),
                                         djRadios.has("nickname") ? djRadios.getAsJsonObject("dj").get("nickname").getAsString() : djRadios.get("name").getAsString(),
                                         djRadios.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), djRadios.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), djRadios.get("name").getAsString()),
                         "/cloudmusic dj " + djRadios.get("id").getAsLong()
                 );
             }

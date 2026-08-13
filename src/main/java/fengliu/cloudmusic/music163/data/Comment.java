@@ -10,8 +10,8 @@ import fengliu.cloudmusic.util.IdUtil;
 import fengliu.cloudmusic.util.TextClickItem;
 import fengliu.cloudmusic.util.page.ApiPage;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -57,7 +57,7 @@ public class Comment extends Music163Obj implements IPrint {
 
         int total = json.getAsJsonObject("data").get("totalCount").getAsInt();
         if (total == 0) {
-            throw new ActionException(Text.translatable("cloudmusic.exception.not.comment.floors"));
+            throw new ActionException(Component.translatable("cloudmusic.exception.not.comment.floors"));
         }
 
         return new ApiPage(json.getAsJsonObject("data").getAsJsonArray("comments"), total, "/api/resource/comment/floor/get", api, data) {
@@ -70,33 +70,33 @@ public class Comment extends Music163Obj implements IPrint {
             protected TextClickItem putPageItem(Object data) {
                 Comment comment = new Comment(this.api, (JsonObject) data, threadId);
                 return new TextClickItem(
-                        Text.literal(comment.getPageItem()),
-                        Text.translatable(IdUtil.getShowInfo("page.comment")),
+                        Component.literal(comment.getPageItem()),
+                        Component.translatable(IdUtil.getShowInfo("page.comment")),
                         "/cloudmusic comment %s %s".formatted(comment.id, threadId)
                 );
             }
         };
     }
 
-    public Text getBeContent() {
+    public Component getBeContent() {
         JsonObject beReplied = this.beReplied.get(0).getAsJsonObject();
         String beContent;
         if (!beReplied.get("content").isJsonNull()) {
             beContent = beReplied.get("content").getAsString();
         } else {
-            beContent = beReplied.get("status").getAsInt() == -50 ? Text.translatable("cloudmusic.info.page.comment.null").getString() : Text.translatable("cloudmusic.info.page.comment.err.null").getString();
+            beContent = beReplied.get("status").getAsInt() == -50 ? Component.translatable("cloudmusic.info.page.comment.null").getString() : Component.translatable("cloudmusic.info.page.comment.err.null").getString();
         }
-        return Text.translatable("cloudmusic.info.comment.be.replied", beReplied.get("user").getAsJsonObject().get("nickname").getAsString(),
+        return Component.translatable("cloudmusic.info.comment.be.replied", beReplied.get("user").getAsJsonObject().get("nickname").getAsString(),
                 beReplied.get("ipLocation").getAsJsonObject().get("location").getAsString(), beContent);
     }
 
     public String getPageItem() {
         if (!this.beReplied.isEmpty()) {
             return "%s§r§7 - §b%s - %s: §r§f%s §7- %s - id: %s".formatted(this.getBeContent().getString(), this.user.get("nickname").getAsString(), this.ipLocation.get("location").getAsString(),
-                    this.content, Text.translatable("cloudmusic.page.item.comments.like", this.likedCount).getString(), this.id);
+                    this.content, Component.translatable("cloudmusic.page.item.comments.like", this.likedCount).getString(), this.id);
         }
         return "§b%s - %s: §r§f%s §7- %s - id: %s".formatted(this.user.get("nickname").getAsString(), this.ipLocation.get("location").getAsString(),
-                this.content, Text.translatable("cloudmusic.page.item.comments.like", this.likedCount).getString(), this.id);
+                this.content, Component.translatable("cloudmusic.page.item.comments.like", this.likedCount).getString(), this.id);
     }
 
     public void reply(String content) {
@@ -136,21 +136,21 @@ public class Comment extends Music163Obj implements IPrint {
     public void printToChatHud(FabricClientCommandSource source) {
         if (!this.beReplied.isEmpty()) {
 //            source.sendFeedback(new TextClickItem(
-//                    (MutableText) this.getBeContent(),
-//                    Text.translatable(IdUtil.getShowInfo("page.comment")),
+//                    (MutableComponent) this.getBeContent(),
+//                    Component.translatable(IdUtil.getShowInfo("page.comment")),
 //                    "/cloudmusic comment %s %s".formatted(this.beReplied.get(0).getAsJsonObject().get("beRepliedCommentId").getAsLong(), this.threadId)
 //            ).build());
             source.sendFeedback(this.getBeContent());
-            source.sendFeedback(Text.literal("========================").formatted(Formatting.GRAY));
+            source.sendFeedback(Component.literal("========================").withStyle(ChatFormatting.GRAY));
         }
 
         source.sendFeedback(new TextClickItem(
-                Text.literal("%s - %s: %s".formatted(this.user.get("nickname").getAsString(), this.ipLocation.get("location").getAsString(), this.content)),
-                Text.translatable(IdUtil.getShowInfo("comment.user")),
+                Component.literal("%s - %s: %s".formatted(this.user.get("nickname").getAsString(), this.ipLocation.get("location").getAsString(), this.content)),
+                Component.translatable(IdUtil.getShowInfo("comment.user")),
                 "/cloudmusic user " + this.user.get("userId").getAsLong()
         ).build());
-        source.sendFeedback(Text.translatable("cloudmusic.info.comment.time", this.timeStr));
-        source.sendFeedback(Text.translatable("cloudmusic.page.item.comments.like", this.likedCount));
+        source.sendFeedback(Component.translatable("cloudmusic.info.comment.time", this.timeStr));
+        source.sendFeedback(Component.translatable("cloudmusic.page.item.comments.like", this.likedCount));
 
         source.sendFeedback(TextClickItem.combine(
                 new TextClickItem("comment.floors", "/cloudmusic comment floors %s %s".formatted(id, this.threadId)),

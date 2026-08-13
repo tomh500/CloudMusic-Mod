@@ -8,8 +8,8 @@ import fengliu.cloudmusic.util.HttpClient;
 import fengliu.cloudmusic.util.IdUtil;
 import fengliu.cloudmusic.util.TextClickItem;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -109,11 +109,11 @@ public class PlayList extends Music163Obj implements IMusicList, ICanSubscribe, 
 
     @Override
     public void printToChatHud(FabricClientCommandSource source) {
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
 
-        source.sendFeedback(Text.literal(this.name));
+        source.sendFeedback(Component.literal(this.name));
 
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
 
         source.sendFeedback(new TextClickItem(
                 "info.playlist.creator",
@@ -125,25 +125,25 @@ public class PlayList extends Music163Obj implements IMusicList, ICanSubscribe, 
             for (JsonElement tag : this.tags) {
                 String tagName = tag.getAsString();
                 tagsTexts.add(new TextClickItem(
-                        Text.literal("§b§n" + tagName),
-                        Text.translatable(IdUtil.getShowInfo("playlist.tag"), tagName),
+                        Component.literal("§b§n" + tagName),
+                        Component.translatable(IdUtil.getShowInfo("playlist.tag"), tagName),
                         "/cloudmusic top playlist \"%s\"".formatted(tagName)
                 ));
             }
 
-            source.sendFeedback(Text.translatable("cloudmusic.info.playlist.tags", TextClickItem.combine(
+            source.sendFeedback(Component.translatable("cloudmusic.info.playlist.tags", TextClickItem.combine(
                     "§f§l/",
-                    text -> text.setStyle(text.getStyle().withColor(Formatting.AQUA).withUnderline(true)),
+                    text -> text.setStyle(text.getStyle().withColor(ChatFormatting.AQUA).withUnderlined(true)),
                     tagsTexts.toArray(new TextClickItem[]{})
             )));
         }
-        source.sendFeedback(Text.translatable("cloudmusic.info.playlist.count", this.count, this.playCount));
-        source.sendFeedback(Text.translatable("cloudmusic.info.playlist.id", this.id));
+        source.sendFeedback(Component.translatable("cloudmusic.info.playlist.count", this.count, this.playCount));
+        source.sendFeedback(Component.translatable("cloudmusic.info.playlist.id", this.id));
 
         if (this.description != null) {
-            source.sendFeedback(Text.literal(""));
+            source.sendFeedback(Component.literal(""));
             for (String row : this.description) {
-                source.sendFeedback(Text.literal("§7" + row));
+                source.sendFeedback(Component.literal("§7" + row));
             }
         }
 

@@ -8,7 +8,7 @@ import fengliu.cloudmusic.util.IdUtil;
 import fengliu.cloudmusic.util.TextClickItem;
 import fengliu.cloudmusic.util.page.ApiPage;
 import fengliu.cloudmusic.util.page.Page;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -51,7 +51,7 @@ public class Music163 {
 
         JsonArray json = this.api.POST_API("/api/v3/song/detail", data).getAsJsonArray("songs");
         if(json.isEmpty()){
-            throw new ActionException(Text.translatable("cloudmusic.exception.music.id"));
+            throw new ActionException(Component.translatable("cloudmusic.exception.music.id"));
         }
         return new Music(getHttpClient(), json.get(0).getAsJsonObject(), null);
     }
@@ -91,7 +91,7 @@ public class Music163 {
     public Album album(long id){
         JsonObject json = this.api.POST_API("/api/v1/album/" + id, null);
         if(!json.get("resourceState").getAsBoolean()){
-            throw new ActionException(Text.translatable("cloudmusic.exception.album.id"));
+            throw new ActionException(Component.translatable("cloudmusic.exception.album.id"));
         }
 
         return new Album(getHttpClient(), json);
@@ -124,7 +124,7 @@ public class Music163 {
     public User user(long id){
         JsonObject json = this.api.POST_API("/api/v1/user/detail/" + id, null);
         if(json.get("code").getAsInt() != 200){
-            throw new ActionException(Text.translatable("cloudmusic.exception.user.id"));
+            throw new ActionException(Component.translatable("cloudmusic.exception.user.id"));
         }
 
         return new User(this.api, json);
@@ -137,7 +137,7 @@ public class Music163 {
     public My my(){
         JsonObject json = this.api.POST_API("/api/w/nuser/account/get", null);
         if(json.get("account").isJsonNull()){
-            throw new ActionException(Text.translatable("cloudmusic.exception.cookie"));
+            throw new ActionException(Component.translatable("cloudmusic.exception.cookie"));
         }
         return new My(this.api, this.api.POST_API("/api/v1/user/detail/" + json.getAsJsonObject("profile").get("userId").getAsLong(), null));
     }
@@ -190,13 +190,13 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject music = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         music.get("name").getAsString(),
                                         Music.getArtistsName(music.getAsJsonArray("ar")),
                                         music.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), music.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), music.get("name").getAsString()),
                         "/cloudmusic music " + music.get("id").getAsLong()
                 );
             }
@@ -222,13 +222,13 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject playList = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         playList.get("name").getAsString(),
                                         playList.getAsJsonObject("creator").get("nickname").getAsString(),
                                         playList.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
                         "/cloudmusic playlist " + playList.get("id").getAsLong()
                 );
             }
@@ -254,13 +254,13 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject album = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         album.get("name").getAsString(),
                                         album.getAsJsonObject("artist").get("name").getAsString(),
                                         album.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), album.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), album.get("name").getAsString()),
                         "/cloudmusic album " + album.get("id").getAsLong()
                 );
             }
@@ -286,12 +286,12 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject artist = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- id: %s"
+                        Component.literal("§b%s §r§7- id: %s"
                                 .formatted(
                                         artist.get("name").getAsString(),
                                         artist.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), artist.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), artist.get("name").getAsString()),
                         "/cloudmusic artist " + artist.get("id").getAsLong()
                 );
             }
@@ -316,13 +316,13 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject djRadios = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         djRadios.get("name").getAsString(),
                                         djRadios.getAsJsonObject("dj").get("nickname").getAsString(),
                                         djRadios.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), djRadios.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), djRadios.get("name").getAsString()),
                         "/cloudmusic dj " + djRadios.get("id").getAsLong()
                 );
             }
@@ -343,13 +343,13 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject style = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         style.get("tagName").getAsString(),
                                         style.get("enName").getAsString(),
                                         style.get("tagId").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page.style"), style.get("tagName").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page.style"), style.get("tagName").getAsString()),
                         "/cloudmusic style " + style.get("tagId").getAsInt()
                 );
             }
@@ -367,8 +367,8 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject tags = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b" + tags.get("name").getAsString()),
-                        Text.translatable(IdUtil.getShowInfo("page.playlist.tags"), tags.get("name").getAsString()),
+                        Component.literal("§b" + tags.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page.playlist.tags"), tags.get("name").getAsString()),
                         "/cloudmusic top playlist \"" + tags.get("name").getAsString() + "\""
                 );
             }
@@ -386,8 +386,8 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject tags = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b" + tags.get("name").getAsString()),
-                        Text.translatable(IdUtil.getShowInfo("page.playlist.tags"), tags.get("name").getAsString()),
+                        Component.literal("§b" + tags.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page.playlist.tags"), tags.get("name").getAsString()),
                         "/cloudmusic top playlist \"" + tags.get("name").getAsString() + "\""
                 );
             }
@@ -405,8 +405,8 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject tags = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b" + tags.get("name").getAsString()),
-                        Text.translatable(IdUtil.getShowInfo("page.playlist.tags"), tags.get("name").getAsString()),
+                        Component.literal("§b" + tags.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page.playlist.tags"), tags.get("name").getAsString()),
                         "/cloudmusic top playlist highquality \"" + tags.get("name").getAsString() + "\""
                 );
             }
@@ -448,13 +448,13 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject playList = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         playList.get("name").getAsString(),
                                         playList.getAsJsonObject("creator").get("nickname").getAsString(),
                                         playList.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
                         "/cloudmusic playlist " + playList.get("id").getAsLong()
                 );
             }
@@ -485,13 +485,13 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject playList = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         playList.get("name").getAsString(),
                                         playList.getAsJsonObject("creator").get("nickname").getAsString(),
                                         playList.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
                         "/cloudmusic playlist " + playList.get("id").getAsLong()
                 );
             }
@@ -510,13 +510,13 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject playList = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         playList.get("name").getAsString(),
                                         playList.get("updateFrequency").getAsString(),
                                         playList.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
                         "/cloudmusic playlist " + playList.get("id").getAsLong()
                 );
             }
@@ -541,12 +541,12 @@ public class Music163 {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject artist = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- id: %s"
+                        Component.literal("§b%s §r§7- id: %s"
                                 .formatted(
                                         artist.get("name").getAsString(),
                                         artist.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), artist.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), artist.get("name").getAsString()),
                         "/cloudmusic artist " + artist.get("id").getAsLong()
                 );
             }

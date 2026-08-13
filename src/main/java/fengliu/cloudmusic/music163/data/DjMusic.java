@@ -6,7 +6,7 @@ import fengliu.cloudmusic.music163.*;
 import fengliu.cloudmusic.util.HttpClient;
 import fengliu.cloudmusic.util.TextClickItem;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -78,7 +78,7 @@ public class DjMusic extends Music163Obj implements IMusic, ICanComment {
         JsonObject result = playApi.POST_API("/api/song/enhance/player/url/v1", data);
         JsonObject music = result.get("data").getAsJsonArray().get(0).getAsJsonObject();
         if (music.get("code").getAsInt() != 200) {
-            throw new ActionException(Text.translatable("cloudmusic.exception.music.get.url", this.name));
+            throw new ActionException(Component.translatable("cloudmusic.exception.music.get.url", this.name));
         }
         return music.get("url").getAsString();
     }
@@ -100,11 +100,11 @@ public class DjMusic extends Music163Obj implements IMusic, ICanComment {
 
     @Override
     public void printToChatHud(FabricClientCommandSource source) {
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
 
-        source.sendFeedback(Text.literal(this.name));
+        source.sendFeedback(Component.literal(this.name));
 
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
 
         source.sendFeedback(new TextClickItem(
                 "info.dj.music.radio",
@@ -116,15 +116,15 @@ public class DjMusic extends Music163Obj implements IMusic, ICanComment {
                 "/cloudmusic user " + this.dj.get("userId").getAsLong()
         ).append("§b" + this.dj.get("nickname").getAsString()).build());
 
-        source.sendFeedback(Text.translatable("cloudmusic.info.dj.music.count", this.listenerCount, this.likedCount));
-        source.sendFeedback(Text.translatable("cloudmusic.info.dj.music.duration", this.getDurationToString()));
-        source.sendFeedback(Text.translatable("cloudmusic.info.dj.music.id", this.mainTrackId));
-        source.sendFeedback(Text.translatable("cloudmusic.info.dj.id", this.id));
+        source.sendFeedback(Component.translatable("cloudmusic.info.dj.music.count", this.listenerCount, this.likedCount));
+        source.sendFeedback(Component.translatable("cloudmusic.info.dj.music.duration", this.getDurationToString()));
+        source.sendFeedback(Component.translatable("cloudmusic.info.dj.music.id", this.mainTrackId));
+        source.sendFeedback(Component.translatable("cloudmusic.info.dj.id", this.id));
 
         if (this.description != null) {
-            source.sendFeedback(Text.literal(""));
+            source.sendFeedback(Component.literal(""));
             for (String row : this.description) {
-                source.sendFeedback(Text.literal("§7" + row));
+                source.sendFeedback(Component.literal("§7" + row));
             }
         }
 

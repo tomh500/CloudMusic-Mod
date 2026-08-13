@@ -8,8 +8,8 @@ import fengliu.cloudmusic.util.HttpClient;
 import fengliu.cloudmusic.util.IdUtil;
 import fengliu.cloudmusic.util.TextClickItem;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -62,10 +62,10 @@ public class Album extends Music163Obj implements IMusicList, ICanSubscribe, ICa
 
     @Override
     public void printToChatHud(FabricClientCommandSource source) {
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
 
         if (this.alias.size() == 0) {
-            source.sendFeedback(Text.literal(this.name));
+            source.sendFeedback(Component.literal(this.name));
         } else {
             StringBuilder aliasName = new StringBuilder();
             for (JsonElement alia : this.alias.asList()) {
@@ -73,34 +73,34 @@ public class Album extends Music163Obj implements IMusicList, ICanSubscribe, ICa
             }
             aliasName = new StringBuilder(aliasName.substring(0, aliasName.length() - 3));
 
-            source.sendFeedback(Text.literal(this.name + " §7(" + aliasName + ")"));
+            source.sendFeedback(Component.literal(this.name + " §7(" + aliasName + ")"));
         }
 
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
 
         List<TextClickItem> artistsTexts = new ArrayList<>();
         for (JsonElement artistData : this.artists.asList()) {
             JsonObject artist = artistData.getAsJsonObject();
             artistsTexts.add(new TextClickItem(
-                    Text.literal(artist.get("name").getAsString()),
-                    Text.translatable(IdUtil.getShowInfo("music.artist")),
+                    Component.literal(artist.get("name").getAsString()),
+                    Component.translatable(IdUtil.getShowInfo("music.artist")),
                     "/cloudmusic artist " + artist.get("id").getAsLong()
             ));
         }
 
         source.sendFeedback(TextClickItem.combine(
                 "§f§l/",
-                text -> text.setStyle(text.getStyle().withColor(Formatting.AQUA).withUnderline(true)),
+                text -> text.setStyle(text.getStyle().withColor(ChatFormatting.AQUA).withUnderlined(true)),
                 artistsTexts.toArray(new TextClickItem[]{})
         ));
 
-        source.sendFeedback(Text.translatable("cloudmusic.info.album.size", this.size));
-        source.sendFeedback(Text.translatable("cloudmusic.info.album.id", this.id));
+        source.sendFeedback(Component.translatable("cloudmusic.info.album.size", this.size));
+        source.sendFeedback(Component.translatable("cloudmusic.info.album.id", this.id));
 
         if (this.description != null) {
-            source.sendFeedback(Text.literal(""));
+            source.sendFeedback(Component.literal(""));
             for (String row : this.description) {
-                source.sendFeedback(Text.literal("§7" + row));
+                source.sendFeedback(Component.literal("§7" + row));
             }
         }
 

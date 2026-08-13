@@ -9,7 +9,7 @@ import fengliu.cloudmusic.util.TextClickItem;
 import fengliu.cloudmusic.util.page.ApiPage;
 import fengliu.cloudmusic.util.page.Page;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 import java.util.*;
 
@@ -73,13 +73,13 @@ public class Artist extends Music163Obj implements IPrint, ICanSubscribe {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject album = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         album.get("name").getAsString(),
                                         album.getAsJsonObject("artist").get("name").getAsString(),
                                         album.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), album.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), album.get("name").getAsString()),
                         "/cloudmusic album " + album.get("id").getAsLong()
                 );
             }
@@ -97,12 +97,12 @@ public class Artist extends Music163Obj implements IPrint, ICanSubscribe {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject artist = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- id: %s"
+                        Component.literal("§b%s §r§7- id: %s"
                                 .formatted(
                                         artist.get("name").getAsString(),
                                         artist.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), artist.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), artist.get("name").getAsString()),
                         "/cloudmusic artist " + artist.get("id").getAsLong()
                 );
             }
@@ -133,18 +133,18 @@ public class Artist extends Music163Obj implements IPrint, ICanSubscribe {
 
     @Override
     public void printToChatHud(FabricClientCommandSource source) {
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
 
-        source.sendFeedback(Text.literal(this.name));
+        source.sendFeedback(Component.literal(this.name));
 
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
 
-        source.sendFeedback(Text.translatable("cloudmusic.info.artist.music", this.musicSize));
-        source.sendFeedback(Text.translatable("cloudmusic.info.artist.album", this.albumSize));
-        source.sendFeedback(Text.translatable("cloudmusic.info.artist.id", this.id));
+        source.sendFeedback(Component.translatable("cloudmusic.info.artist.music", this.musicSize));
+        source.sendFeedback(Component.translatable("cloudmusic.info.artist.album", this.albumSize));
+        source.sendFeedback(Component.translatable("cloudmusic.info.artist.id", this.id));
 
-        source.sendFeedback(Text.literal(""));
-        source.sendFeedback(Text.literal("§7" + this.briefDesc));
+        source.sendFeedback(Component.literal(""));
+        source.sendFeedback(Component.literal("§7" + this.briefDesc));
 
         source.sendFeedback(TextClickItem.combine(
                 new TextClickItem("play.top50", "/cloudmusic artist top " + this.id),

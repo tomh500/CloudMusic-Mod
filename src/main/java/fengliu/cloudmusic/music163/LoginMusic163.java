@@ -10,9 +10,12 @@ import fengliu.cloudmusic.command.MusicCommand;
 import fengliu.cloudmusic.config.Configs;
 import fengliu.cloudmusic.render.MusicIconTexture;
 import fengliu.cloudmusic.util.HttpClient;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LoginMusic163 {
+    private static final Logger LOGGER = LoggerFactory.getLogger("cloudmusic");
     private Map<String, String> Header = new HashMap<String, String>();
     private final HttpClient api;
     
@@ -70,6 +73,7 @@ public class LoginMusic163 {
      * @param countryCode 国家码
      */
     public void sendCaptcha(long phone, int countryCode) {
+        LOGGER.info("[CloudMusic][Login] 发送验证码 phone={} countryCode={}", phone, countryCode);
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("ctcode", countryCode);
         data.put("cellphone", phone);
@@ -85,6 +89,7 @@ public class LoginMusic163 {
      * @return 登录成功返回 cookie
      */
     public String cellphone(long phone, int captcha, int countryCode) {
+        LOGGER.info("[CloudMusic][Login] 验证码登录 phone={}", phone);
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("captcha", captcha);
         data.put("rememberLogin", true);
@@ -102,6 +107,7 @@ public class LoginMusic163 {
      * @return 登录成功返回 cookie
      */
     public String cellphone(long phone, String password, int countryCode) {
+        LOGGER.info("[CloudMusic][Login] 手机密码登录 phone={}", phone);
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("password", LoginMusic163.encryption(password));
         data.put("rememberLogin", true);
@@ -118,6 +124,7 @@ public class LoginMusic163 {
      * @return 登录成功返回 cookie
      */
     public String email(String email, String password) {
+        LOGGER.info("[CloudMusic][Login] 邮箱登录 email={}", email);
         Map<String, Object> data = new HashMap<String, Object>();
         data.put("username", email);
         data.put("password", LoginMusic163.encryption(password));
@@ -131,6 +138,7 @@ public class LoginMusic163 {
      * @return key
      */
     public String qrKey(){
+        LOGGER.info("[CloudMusic][Login] 获取二维码 key");
         Map<String, Object> data = new HashMap<>();
         data.put("type", 1);
 
@@ -174,11 +182,13 @@ public class LoginMusic163 {
             JsonObject json = result.getJson();
 
             int code = json.get("code").getAsInt();
+            LOGGER.info("[CloudMusic][Login] 二维码状态码={} 剩余轮查={}", code, qrCheckNum);
             if(code == 800){
-                throw new ActionException(Text.translatable("cloudmusic.exception.login.qr.code"));
+                throw new ActionException(Component.translatable("cloudmusic.exception.login.qr.code"));
             }
 
             if(code == 803){
+                LOGGER.info("[CloudMusic][Login] 二维码登录成功");
                 return result.getSetCookie();
             }
 
@@ -186,6 +196,6 @@ public class LoginMusic163 {
             qrCheckNum -= 1;
         }
 
-        throw new ActionException(Text.translatable("cloudmusic.exception.login.qr.code.time.out"));
+        throw new ActionException(Component.translatable("cloudmusic.exception.login.qr.code.time.out"));
     }
 }

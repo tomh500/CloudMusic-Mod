@@ -7,7 +7,7 @@ import fengliu.cloudmusic.util.HttpClient;
 import fengliu.cloudmusic.util.IdUtil;
 import fengliu.cloudmusic.util.TextClickItem;
 import fengliu.cloudmusic.util.page.ApiPage;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +36,7 @@ public interface ICanComment {
 
         int total = json.get("total").getAsInt();
         if (total == 0) {
-            throw new ActionException(Text.translatable("cloudmusic.exception.not%scomments".formatted(hot ? ".hot." : ".")));
+            throw new ActionException(Component.translatable("cloudmusic.exception.not%scomments".formatted(hot ? ".hot." : ".")));
         }
 
         String arrayKey = hot ? "hotComments" : "comments";
@@ -50,8 +50,8 @@ public interface ICanComment {
             protected TextClickItem putPageItem(Object data) {
                 Comment comment = new Comment(this.api, (JsonObject) data, threadId);
                 return new TextClickItem(
-                        Text.literal(comment.getPageItem()),
-                        Text.translatable(IdUtil.getShowInfo("page.comment")),
+                        Component.literal(comment.getPageItem()),
+                        Component.translatable(IdUtil.getShowInfo("page.comment")),
                         "/cloudmusic comment %s %s".formatted(comment.id, threadId)
                 );
             }

@@ -9,8 +9,10 @@ import fengliu.cloudmusic.music163.data.DjMusic;
 import fengliu.cloudmusic.music163.data.Music;
 import fengliu.cloudmusic.render.MusicIconTexture;
 import fengliu.cloudmusic.util.page.Page;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import net.minecraft.network.chat.Component;
 
 import javax.sound.sampled.*;
 import java.io.File;
@@ -23,7 +25,8 @@ import java.util.List;
  * 歌曲播放对象
  */
 public class MusicPlayer implements Runnable {
-    private final MinecraftClient client = MinecraftClient.getInstance();
+    private static final Logger LOGGER = LoggerFactory.getLogger("cloudmusic");
+    private final Minecraft client = Minecraft.getInstance();
     protected final List<IMusic> playList;
     private IMusic playingMusic = null;
     private SourceDataLine play;
@@ -90,6 +93,7 @@ public class MusicPlayer implements Runnable {
      * 启动歌曲播放
      */
     public void start() {
+        LOGGER.info("[CloudMusic][Player] 启动播放线程");
         Thread thread = new Thread(this);
         thread.setDaemon(true);
         thread.setName("CloudMusicPlayer thread");
@@ -100,17 +104,19 @@ public class MusicPlayer implements Runnable {
      * 播放歌曲
      */
     protected void playMusic() {
+        LOGGER.info("[CloudMusic][Player] 开始播放曲目, 播放列表大小={}", this.playListSize);
         // 开始播放的时候停止所有的声音(只会停止一瞬间)
-        client.getSoundManager().stopAll();
+        client.getSoundManager().stop();
         IMusic music = this.playList.get(this.playIn);
 
         String musicUrl;
         try {
             musicUrl = music.getPlayUrl();
         } catch (ActionException err) {
-            MinecraftClient client = MinecraftClient.getInstance();
+            Minecraft client = Minecraft.getInstance();
+            LOGGER.info("[CloudMusic][Player] 获取播放地址失败", err);
             if (client.player != null) {
-                client.player.sendMessage(Text.literal(err.getMessage()), false);
+                client.execute(() -> client.player.sendSystemMessage(Component.literal(err.getMessage())));
             }
             this.stop();
             return;
@@ -118,13 +124,13 @@ public class MusicPlayer implements Runnable {
 
         if (music instanceof Music aMusic) {
             if (aMusic.freeTrialInfo != null && this.client.player != null) {
-                this.client.player.sendMessage(
-                        Text.translatable(
-                                "cloudmusic.info.play.free.trial",
-                                music.getName(),
-                                aMusic.freeTrialInfo.get("start").getAsInt(),
-                                aMusic.freeTrialInfo.get("end").getAsInt()
-                        ), false);
+                Component freeTrialMessage = Component.translatable(
+                        "cloudmusic.info.play.free.trial",
+                        music.getName(),
+                        aMusic.freeTrialInfo.get("start").getAsInt(),
+                        aMusic.freeTrialInfo.get("end").getAsInt()
+                );
+                this.client.execute(() -> this.client.player.sendSystemMessage(freeTrialMessage));
             }
         }
 
@@ -148,10 +154,12 @@ public class MusicPlayer implements Runnable {
             }
 
             CloudMusicClient.cacheHelper.addUseSize(file);
-            this.client.inGameHud.setOverlayMessage(Text.translatable("record.nowPlaying", music.getName()), false);
+            Component nowPlayingMessage = Component.translatable("record.nowPlaying", music.getName());
+            this.client.execute(() -> this.client.gui.hud.setOverlayMessage(nowPlayingMessage, false));
             this.play(file);
         } else {
-            this.client.inGameHud.setOverlayMessage(Text.translatable("record.nowPlaying", music.getName()), false);
+            Component nowPlayingMessage = Component.translatable("record.nowPlaying", music.getName());
+            this.client.execute(() -> this.client.gui.hud.setOverlayMessage(nowPlayingMessage, false));
             this.play(musicUrl);
         }
     }
@@ -341,6 +349,7 @@ public class MusicPlayer implements Runnable {
      * 停止播放
      */
     public void stop() {
+        LOGGER.info("[CloudMusic][Player] 停止播放");
         if (this.lyric != null) {
             this.lyric.stop();
         }
@@ -434,16 +443,16 @@ public class MusicPlayer implements Runnable {
             protected TextClickItem putPageItem(Object data) {
                 if (data instanceof Music music) {
                     return new TextClickItem(
-                            Text.literal("§b%s §r§7 - %s".formatted(music.name, Music.getArtistsName(music.artists))),
-                            Text.translatable(IdUtil.getShowInfo("page.player.to"), music.name),
+                            Component.literal("§b%s §r§7 - %s".formatted(music.name, Music.getArtistsName(music.artists))),
+                            Component.translatable(IdUtil.getShowInfo("page.player.to"), music.name),
                             "/cloudmusic to " + (this.limit * this.pageIn + this.data.get(this.pageIn).indexOf(data) + 1)
                     );
                 }
 
                 if (data instanceof DjMusic music) {
                     return new TextClickItem(
-                            Text.literal("§b%s §r§7 - %s".formatted(music.name, music.dj.get("nickname").getAsString())),
-                            Text.translatable(IdUtil.getShowInfo("page.player.to"), music.name),
+                            Component.literal("§b%s §r§7 - %s".formatted(music.name, music.dj.get("nickname").getAsString())),
+                            Component.translatable(IdUtil.getShowInfo("page.player.to"), music.name),
                             "/cloudmusic to " + (this.limit * this.pageIn + this.data.get(this.pageIn).indexOf(data) + 1)
                     );
                 }

@@ -11,9 +11,10 @@ import fi.dy.masa.malilib.config.IConfigBase;
 import fi.dy.masa.malilib.config.IConfigHandler;
 import fi.dy.masa.malilib.config.options.*;
 import fi.dy.masa.malilib.util.FileUtils;
-import fi.dy.masa.malilib.util.JsonUtils;
+import fi.dy.masa.malilib.util.data.json.JsonUtils;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 public class Configs implements IConfigHandler {
@@ -30,7 +31,7 @@ public class Configs implements IConfigHandler {
         public static final ConfigBoolean NOT_PLAY_GAME_MUSIC = ConfigUtil.addConfigBoolean("play.not.game.music", true);
         public static final ConfigBoolean EXIT_GAME_STOP_MUSIC = ConfigUtil.addConfigBoolean("exit.game.stop.music");
         public static final ConfigBoolean STOP_PLAY_SHOW_UI = ConfigUtil.addConfigBoolean("stop.play.show.ui");
-        public static final ConfigString CACHE_PATH = ConfigUtil.addConfigString("cache.path", (new File(FileUtils.getMinecraftDirectory(), "cloud_music_cache")).getAbsolutePath());
+        public static final ConfigString CACHE_PATH = ConfigUtil.addConfigString("cache.path", FileUtils.getMinecraftDirectory().resolve("cloud_music_cache").toAbsolutePath().toString());
         public static final ConfigInteger CACHE_MAX_MB = ConfigUtil.addConfigInteger("cache.max.mb", 512, 512, 8000);
         public static final ConfigInteger CACHE_DELETE_MB = ConfigUtil.addConfigInteger("cache.delete.mb", 126, 126, 8000);
         public static final ConfigBooleanHotkeyed MUSIC_INFO = ConfigUtil.addConfigBooleanHotkeyed("music.info");
@@ -44,9 +45,9 @@ public class Configs implements IConfigHandler {
         public static final ConfigColor MUSIC_INFO_COLOR = ConfigUtil.addConfigColor("music.info.color", "#4DE41318");
         public static final ConfigColor MUSIC_PROGRESS_BAR_COLOR = ConfigUtil.addConfigColor("music.progress.bar.color", "#FF858585");
         public static final ConfigColor MUSIC_PLAYED_PROGRESS_BAR_COLOR = ConfigUtil.addConfigColor("music.player.progress.bar.color", "#FFFF9600");
-        public static final ConfigColor MUSIC_PROGRESS_FONT_COLOR = ConfigUtil.addConfigColor("music.progress.font.color", "#00858585");
+        public static final ConfigColor MUSIC_PROGRESS_FONT_COLOR = ConfigUtil.addConfigColor("music.progress.font.color", "#FF858585");
         public static final ConfigColor MUSIC_INFO_TITLE_FONT_COLOR = ConfigUtil.addConfigColor("music.info.title.font.color");
-        public static final ConfigColor MUSIC_INFO_FONT_COLOR = ConfigUtil.addConfigColor("music.info.font.color", "#00858585");
+        public static final ConfigColor MUSIC_INFO_FONT_COLOR = ConfigUtil.addConfigColor("music.info.font.color", "#FF858585");
         public static final ConfigColor LYRIC_COLOR = ConfigUtil.addConfigColor("lyric.color");
         public static final ConfigDouble LYRIC_SCALE = ConfigUtil.addConfigDouble("lyric.scale", 1.5);
         public static final ConfigInteger LYRIC_X = ConfigUtil.addConfigInteger("lyric.x", 2, 0, 4000);
@@ -319,8 +320,8 @@ public class Configs implements IConfigHandler {
 
     @Override
     public void load() {
-        File configFile = new File(FileUtils.getConfigDirectory(), CONFIG_FILE_NAME);
-        if (configFile.isFile() && configFile.exists()) {
+        Path configFile = FileUtils.getConfigDirectory().resolve(CONFIG_FILE_NAME);
+        if (Files.isRegularFile(configFile)) {
             JsonElement element = JsonUtils.parseJsonFile(configFile);
             if (element == null || !element.isJsonObject()) {
                 return;
@@ -333,11 +334,11 @@ public class Configs implements IConfigHandler {
 
     @Override
     public void save() {
-        File dir = FileUtils.getConfigDirectory();
-        if ((dir.exists() && dir.isDirectory()) || dir.mkdirs()) {
+        Path dir = FileUtils.getConfigDirectory();
+        if (Files.isDirectory(dir) || dir.toFile().mkdirs()) {
             JsonObject root = new JsonObject();
             ConfigUtils.writeConfigBase(root, "ALLConfigs", ALL.OPTIONS);
-            JsonUtils.writeJsonToFile(root, new File(dir, CONFIG_FILE_NAME));
+            JsonUtils.writeJsonToFile(root, dir.resolve(CONFIG_FILE_NAME));
         }
     }
 }

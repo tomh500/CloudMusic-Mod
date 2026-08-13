@@ -10,8 +10,8 @@ import fengliu.cloudmusic.util.IdUtil;
 import fengliu.cloudmusic.util.TextClickItem;
 import fengliu.cloudmusic.util.page.Page;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -149,13 +149,13 @@ public class Music extends Music163Obj implements IMusic, ICanComment {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject music = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         music.get("name").getAsString(),
                                         Music.getArtistsName(music.getAsJsonArray("artists")),
                                         music.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), music.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), music.get("name").getAsString()),
                         "/cloudmusic music " + music.get("id").getAsLong()
                 );
             }
@@ -179,13 +179,13 @@ public class Music extends Music163Obj implements IMusic, ICanComment {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject playList = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         playList.get("name").getAsString(),
                                         playList.getAsJsonObject("creator").get("nickname").getAsString(),
                                         playList.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
                         "/cloudmusic playlist " + playList.get("id").getAsLong()
                 );
             }
@@ -221,7 +221,7 @@ public class Music extends Music163Obj implements IMusic, ICanComment {
         JsonObject result = playApi.POST_API("/api/song/enhance/player/url/v1", data);
         JsonObject music = result.get("data").getAsJsonArray().get(0).getAsJsonObject();
         if(music.get("code").getAsInt() != 200){
-            throw new ActionException(Text.translatable("cloudmusic.exception.music.get.url", this.name));
+            throw new ActionException(Component.translatable("cloudmusic.exception.music.get.url", this.name));
         }
 
         if (!music.get("freeTrialInfo").isJsonNull()){
@@ -247,29 +247,29 @@ public class Music extends Music163Obj implements IMusic, ICanComment {
 
     @Override
     public void printToChatHud(FabricClientCommandSource source) {
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
 
         if (this.aliasName.equals("")) {
-            source.sendFeedback(Text.literal(this.name));
+            source.sendFeedback(Component.literal(this.name));
         } else {
-            source.sendFeedback(Text.literal(this.name + " §7(" + this.aliasName + ")"));
+            source.sendFeedback(Component.literal(this.name + " §7(" + this.aliasName + ")"));
         }
        
-       source.sendFeedback(Text.literal(""));
+       source.sendFeedback(Component.literal(""));
 
         List<TextClickItem> artistsTexts = new ArrayList<>();
         for (JsonElement artistData : this.artists.asList()) {
             JsonObject artist = artistData.getAsJsonObject();
             artistsTexts.add(new TextClickItem(
-                    Text.literal(artist.get("name").getAsString()),
-                    Text.translatable(IdUtil.getShowInfo("music.artist")),
+                    Component.literal(artist.get("name").getAsString()),
+                    Component.translatable(IdUtil.getShowInfo("music.artist")),
                     "/cloudmusic artist " + artist.get("id").getAsLong()
             ));
         }
 
         source.sendFeedback(TextClickItem.combine(
                 "§f§l/",
-                text -> text.setStyle(text.getStyle().withColor(Formatting.AQUA).withUnderline(true)),
+                text -> text.setStyle(text.getStyle().withColor(ChatFormatting.AQUA).withUnderlined(true)),
                 artistsTexts.toArray(new TextClickItem[]{})
         ));
 
@@ -278,8 +278,8 @@ public class Music extends Music163Obj implements IMusic, ICanComment {
                 "/cloudmusic album " + this.album.get("id").getAsLong()
         ).append("§b§n" + this.album.get("name").getAsString()).build());
 
-        source.sendFeedback(Text.translatable("cloudmusic.info.music.duration", this.getDurationToString()));
-        source.sendFeedback(Text.translatable("cloudmusic.info.music.id", this.id));
+        source.sendFeedback(Component.translatable("cloudmusic.info.music.duration", this.getDurationToString()));
+        source.sendFeedback(Component.translatable("cloudmusic.info.music.id", this.id));
 
         source.sendFeedback(TextClickItem.combine(
                 new TextClickItem("play", "/cloudmusic music play " + this.id),

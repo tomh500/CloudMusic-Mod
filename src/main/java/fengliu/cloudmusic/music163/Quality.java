@@ -1,7 +1,7 @@
 package fengliu.cloudmusic.music163;
 
 import fi.dy.masa.malilib.config.IConfigOptionListEntry;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public enum Quality implements IConfigOptionListEntry {
     STANDARD ("cloudmusic.play.quality.standard", "standard"),
@@ -25,7 +25,7 @@ public enum Quality implements IConfigOptionListEntry {
 
     @Override
     public String getDisplayName() {
-        return Text.translatable(this.translationKey).getString();
+        return Component.translatable(this.translationKey).getString();
     }
 
     @Override

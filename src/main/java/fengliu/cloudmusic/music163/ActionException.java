@@ -1,6 +1,6 @@
 package fengliu.cloudmusic.music163;
 
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 
 public class ActionException extends RuntimeException {
 
@@ -8,7 +8,7 @@ public class ActionException extends RuntimeException {
         super(msg);
     }
 
-    public ActionException(Text text){
+    public ActionException(Component text){
         super(text.getString());
     }
 }

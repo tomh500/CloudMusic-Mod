@@ -54,7 +54,7 @@ public class ConfigUtil {
     }
 
     public static ConfigColor addConfigColor(String name) {
-        return addConfigColor(name, "#00FFFFFF");
+        return addConfigColor(name, "#FFFFFFFF");
     }
 
     public static <O extends IConfigOptionListEntry> ConfigOptionList addConfigOptionList(String name, O defaultValue) {

@@ -11,18 +11,18 @@ import fi.dy.masa.malilib.config.options.ConfigHotkey;
 import fi.dy.masa.malilib.hotkeys.IHotkeyCallback;
 import fi.dy.masa.malilib.hotkeys.IKeybind;
 import fi.dy.masa.malilib.hotkeys.KeyAction;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
+import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 
 public class HotkeysCallback implements IHotkeyCallback {
-    private final MinecraftClient client = MinecraftClient.getInstance();
+    private final Minecraft client = Minecraft.getInstance();
 
     private interface Job {
-        void fun (MinecraftClient client);
+        void fun (Minecraft client);
     }
 
     private void runHotKey(Job job){
-        MinecraftClient mcClient = client;
+        Minecraft mcClient = client;
         Thread commandThread = new Thread(){
             @Override
             public void run() {
@@ -33,7 +33,7 @@ public class HotkeysCallback implements IHotkeyCallback {
                         return;
                     }
 
-                    mcClient.player.sendMessage(Text.literal(err.getMessage()), false);
+                    mcClient.player.sendSystemMessage(Component.literal(err.getMessage()));
                 }
             }
         };
@@ -54,7 +54,7 @@ public class HotkeysCallback implements IHotkeyCallback {
     public boolean onKeyAction(KeyAction action, IKeybind key) {
 
         if (key == Configs.HOTKEY.OPEN_CONFIG_GUI.getKeybind() && action == KeyAction.PRESS){
-            client.setScreen(new ConfigGui());
+            client.gui.setScreen(new ConfigGui());
             return true;
         }
 
@@ -76,7 +76,7 @@ public class HotkeysCallback implements IHotkeyCallback {
         if (key == Configs.HOTKEY.PLAY_VOLUME_ADD.getKeybind() && action == KeyAction.PRESS){
             MusicCommand.getPlayer().volumeAdd();
             if (client.player != null){
-                client.player.sendMessage(Text.translatable("cloudmusic.info.hotkey.play.volume.add", Configs.PLAY.VOLUME.getStringValue()), true);
+                client.player.sendOverlayMessage(Component.translatable("cloudmusic.info.hotkey.play.volume.add", Configs.PLAY.VOLUME.getStringValue()));
             }
             return true;
         }
@@ -84,7 +84,7 @@ public class HotkeysCallback implements IHotkeyCallback {
         if (key == Configs.HOTKEY.PLAY_VOLUME_DOWN.getKeybind() && action == KeyAction.PRESS){
             MusicCommand.getPlayer().volumeDown();
             if (client.player != null){
-                client.player.sendMessage(Text.translatable("cloudmusic.info.hotkey.play.volume.down", Configs.PLAY.VOLUME.getStringValue()), true);
+                client.player.sendOverlayMessage(Component.translatable("cloudmusic.info.hotkey.play.volume.down", Configs.PLAY.VOLUME.getStringValue()));
             }
             return true;
         }
@@ -136,7 +136,7 @@ public class HotkeysCallback implements IHotkeyCallback {
                 ((Music) music).addTrashCan();
 
                 if (mc.player != null){
-                    mc.player.sendMessage(Text.translatable("cloudmusic.info.command.trash", music.getName()), false);
+                    mc.player.sendSystemMessage(Component.translatable("cloudmusic.info.command.trash", music.getName()));
                 }
             });
         }
@@ -151,7 +151,7 @@ public class HotkeysCallback implements IHotkeyCallback {
                 ((Music) music).like();
 
                 if (mc.player != null){
-                    mc.player.sendMessage(Text.translatable("cloudmusic.info.command.music.like", music.getName()), false);
+                    mc.player.sendSystemMessage(Component.translatable("cloudmusic.info.command.music.like", music.getName()));
                 }
             });
             return true;
@@ -165,7 +165,7 @@ public class HotkeysCallback implements IHotkeyCallback {
 
             this.runHotKey(mc -> {
                 Page page = MusicCommand.getMy(false).playListSetMusic(music.getId(), "add");
-                page.setInfoText(Text.translatable("cloudmusic.info.page.user.playlist.add", MusicCommand.getMy(false).name));
+                page.setInfoText(Component.translatable("cloudmusic.info.page.user.playlist.add", MusicCommand.getMy(false).name));
                 MusicCommand.setPage(page);
                 page.look();
             });
@@ -180,7 +180,7 @@ public class HotkeysCallback implements IHotkeyCallback {
 
             this.runHotKey(mc -> {
                 Page page = MusicCommand.getMy(false).playListSetMusic(music.getId(), "del");
-                page.setInfoText(Text.translatable("cloudmusic.info.page.user.playlist.del", MusicCommand.getMy(false).name));
+                page.setInfoText(Component.translatable("cloudmusic.info.page.user.playlist.del", MusicCommand.getMy(false).name));
                 MusicCommand.setPage(page);
                 page.look();
             });

@@ -8,7 +8,7 @@ import fengliu.cloudmusic.util.IdUtil;
 import fengliu.cloudmusic.util.TextClickItem;
 import fengliu.cloudmusic.util.page.ApiPage;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.minecraft.text.Text;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -113,13 +113,13 @@ public class User extends Music163Obj implements IPrint {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject playList = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         playList.get("name").getAsString(),
                                         playList.getAsJsonObject("creator").get("nickname").getAsString(),
                                         playList.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), playList.get("name").getAsString()),
                         "/cloudmusic playlist " + playList.get("id").getAsLong()
                 );
             }
@@ -145,13 +145,13 @@ public class User extends Music163Obj implements IPrint {
             protected TextClickItem putPageItem(Object data) {
                 JsonObject djRadios = (JsonObject) data;
                 return new TextClickItem(
-                        Text.literal("§b%s §r§7- %s - id: %s"
+                        Component.literal("§b%s §r§7- %s - id: %s"
                                 .formatted(
                                         djRadios.get("name").getAsString(),
                                         djRadios.getAsJsonObject("dj").get("nickname").getAsString(),
                                         djRadios.get("id").getAsLong())
                         ),
-                        Text.translatable(IdUtil.getShowInfo("page"), djRadios.get("name").getAsString()),
+                        Component.translatable(IdUtil.getShowInfo("page"), djRadios.get("name").getAsString()),
                         "/cloudmusic dj " + djRadios.get("id").getAsLong()
                 );
             }
@@ -206,15 +206,15 @@ public class User extends Music163Obj implements IPrint {
 
     @Override
     public void printToChatHud(FabricClientCommandSource source) {
-        source.sendFeedback(Text.literal(""));
-        source.sendFeedback(Text.literal("%s%s".formatted(this.name, this.vip > 0 ? "§7 - vip": "")));
-        source.sendFeedback(Text.literal(""));
+        source.sendFeedback(Component.literal(""));
+        source.sendFeedback(Component.literal("%s%s".formatted(this.name, this.vip > 0 ? "§7 - vip": "")));
+        source.sendFeedback(Component.literal(""));
 
-        source.sendFeedback(Text.translatable("cloudmusic.info.user.level", this.level));
-        source.sendFeedback(Text.translatable("cloudmusic.info.user.id", this.id));
+        source.sendFeedback(Component.translatable("cloudmusic.info.user.level", this.level));
+        source.sendFeedback(Component.translatable("cloudmusic.info.user.id", this.id));
 
-        source.sendFeedback(Text.literal(""));
-        source.sendFeedback(Text.literal("§7" + this.signature));
+        source.sendFeedback(Component.literal(""));
+        source.sendFeedback(Component.literal("§7" + this.signature));
 
         source.sendFeedback(TextClickItem.combine(
                 new TextClickItem("user.like", "/cloudmusic user like " + this.id),
